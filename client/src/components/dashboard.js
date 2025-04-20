@@ -2,14 +2,17 @@ import React from 'react';
 
 const Dashboard = ({ trackingData }) => (
   <div>
-    <h2>Tracking Data</h2>
+  <i>Profile Data: </i>
     {trackingData && trackingData.length > 0 ? (
       <ul>
-        {trackingData.map(item => (
-          <li key={item.id}>
-            Event {item.id}: {JSON.stringify(item)}
-          </li>
-        ))}
+        {trackingData.map((item, index)=> (
+          <div key={index}>
+          <p><strong>Name:</strong> {item.name}</p>
+          <p><strong>Email:</strong> {item.email}</p>
+          {item.phone && <p><strong>Phone:</strong> {item.phone}</p>}
+          <hr />
+          </div>
+    ))}
       </ul>
     ) : (
       <p>No tracking data available.</p>
