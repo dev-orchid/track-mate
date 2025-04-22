@@ -15,7 +15,7 @@ exports.getAllTracking = (req, res) => {
 //event creation
 exports.createEvent = async (req, res) => {
   try {
-    const eventData = req.query;
+    const eventData = req.body;
     const responseData = await trackingModel.eventCreation(eventData);
     res.json({ status: 'success', data: responseData });
   } catch (err) {
