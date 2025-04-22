@@ -20,18 +20,44 @@ const profileSchema = new mongoose.Schema({
 });
 
 // Event Schema
+// const EventSchema = new mongoose.Schema({
+// 	userId: {
+// 		type: mongoose.Schema.Types.ObjectId,
+// 		ref: "Profile",
+// 		default: null,
+// 	},
+// 	sessionId: String,
+// 	eventType: String,
+// 	timestamp: { type: Date, default: Date.now },
+// 	metadata: mongoose.Schema.Types.Mixed,
+// });
+//New Event Schema
 const EventSchema = new mongoose.Schema({
 	userId: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "Profile",
 		default: null,
 	},
-	sessionId: String,
-	eventType: String,
-	timestamp: { type: Date, default: Date.now },
-	metadata: mongoose.Schema.Types.Mixed,
+	sessionId: { type: String, required: true },
+	events: [
+		{
+			eventType: { type: String, required: true },
+			eventData: {
+				address: { type: String },
+				productInfos: [
+					{
+						productName: { type: String },
+						price: { type: Number },
+						productId: { type: String },
+					},
+				],
+			},
+			timestamp: { type: Date, default: Date.now },
+		},
+	],
 });
 
+//End
 const Profile = mongoose.model("Profile", profileSchema);
 const Event = mongoose.model("Event", EventSchema);
 
