@@ -63,9 +63,9 @@ const Event = mongoose.model("Event", EventSchema);
 
 //to get profile data from db
 const Userdata = [];
-Profile.find({}, { _id: 0, __v: 0 })
-	.then((profiles) => {
-		Userdata.push(profiles);
+Event.find({}, { _id: 0, __v: 0 })
+	.then((events) => {
+		Userdata.push(events);
 	})
 	.catch((err) => console.error("Error finding users:", err));
 exports.getAll = () => Userdata;
