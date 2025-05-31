@@ -19,18 +19,7 @@ const profileSchema = new mongoose.Schema({
 	// Other fields…
 });
 
-// Event Schema
-// const EventSchema = new mongoose.Schema({
-// 	userId: {
-// 		type: mongoose.Schema.Types.ObjectId,
-// 		ref: "Profile",
-// 		default: null,
-// 	},
-// 	sessionId: String,
-// 	eventType: String,
-// 	timestamp: { type: Date, default: Date.now },
-// 	metadata: mongoose.Schema.Types.Mixed,
-// });
+
 //New Event Schema
 const EventSchema = new mongoose.Schema({
 	userId: {
@@ -62,15 +51,15 @@ const Profile = mongoose.model("Profile", profileSchema);
 const Event = mongoose.model("Event", EventSchema);
 
 //to get profile data from db
-const Userdata = [];
-Event.find({}, { _id: 0, __v: 0 })
-	.then((events) => {
-		Userdata.push(events);
-	})
-	.catch((err) => console.error("Error finding users:", err));
-exports.getAll = () => Userdata;
-//End Get Profile Data
-//Function to insert daata in Events Document
+exports.getAll = async () => {
+    try {
+        return await Event.find({},{_id:0,__v:0 }).populate('userId');
+    } catch (err) {
+        console.error("Error finding users:", err);
+        return [];
+    }
+};
+
 async function insertEvents(eventData) {
 	try {
 		const responseData = await new Event(eventData).save();

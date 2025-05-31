@@ -1,7 +1,7 @@
 const trackingModel = require('../models/trackingModel');
 
-exports.getAllTracking = (req, res) => {
-  const data = trackingModel.getAll();
+exports.getAllTracking = async (req, res) => {
+  const data = await trackingModel.getAll();
   const { eventId } = req.params;
   // In a real-world scenario, you would look up the event in your database.
   const trackingEvent = {
@@ -9,7 +9,7 @@ exports.getAllTracking = (req, res) => {
     name: "User Login",
     timestamp: new Date().toISOString()
   };
-  console.log(eventId);
+  console.log(data);
   res.json({ status: 'successkedar', data });
 };
 //event creation
