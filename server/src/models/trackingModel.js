@@ -50,8 +50,8 @@ const EventSchema = new mongoose.Schema({
 const Profile = mongoose.model("Profile", profileSchema);
 const Event = mongoose.model("Event", EventSchema);
 
-//to get profile data from db
-exports.getAll = async () => {
+//to get Event data from Event Schema
+exports.getAllEvent = async () => {
     try {
         return await Event.find({},{_id:0,__v:0 }).populate('userId');
     } catch (err) {
@@ -59,7 +59,15 @@ exports.getAll = async () => {
         return [];
     }
 };
-
+//to get all profile from Profile Schema
+exports.getAllProfile = async () => {
+    try {
+        return await Profile.find({},{_id:0,__v:0 });
+    } catch (err) {
+        console.error("Error finding users:", err);
+        return [];
+    }
+};
 async function insertEvents(eventData) {
 	try {
 		const responseData = await new Event(eventData).save();

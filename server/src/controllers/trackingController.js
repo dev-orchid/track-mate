@@ -1,7 +1,7 @@
 const trackingModel = require('../models/trackingModel');
 
 exports.getAllTracking = async (req, res) => {
-  const data = await trackingModel.getAll();
+  const data = await trackingModel.getAllEvent();
   const { eventId } = req.params;
   // In a real-world scenario, you would look up the event in your database.
   const trackingEvent = {
@@ -34,3 +34,9 @@ exports.profileCreation = async (req,res) =>{
     res.status(500).json({status:'Error', error:err});
   }
 }
+//get profile
+exports.getAllProfile = async (req, res) => {
+  const data = await trackingModel.getAllProfile();
+  console.log(data);
+  res.json({ status: 'profile fetched', data });
+};

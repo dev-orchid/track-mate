@@ -2,6 +2,7 @@
 import Header from '../components/Layout/Header';
 import Sidebar from '../components/Layout/Sidebar';
 import Footer from '../components/Layout/Footer';
+import ProfileData from '../components/Dashboard/ProfileData';
 import useProfiles from '../hooks/useProfile';
 import type { NextPage } from 'next';
 
@@ -15,7 +16,7 @@ const Profile: NextPage = () => {
         <Header />
         <main style={{ padding: '1rem' }}>
         </main>
-        <p>hello profile</p>
+        <ProfileData profileData={profiles}/>
         <Footer />
       </div>
     </div>

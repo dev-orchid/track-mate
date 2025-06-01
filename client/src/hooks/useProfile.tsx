@@ -1,29 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { getProfileData, geEventData } from "./requests";
+import { getProfileData } from "./requests";
 
-function getEvents(){
-
-    const [events, setEventData] = useState([]);
-
-    const getEventData= useCallback(async ()=>{
-
-        const eventData = await geEventData();
-
-        setEventData(eventData.data.flat());
-
-    }, []);
-
-    useEffect(()=>{
-
-        getEventData();
-
-    }, [getEventData] );
-
-    return events;
-}
-
-function useProfiles(){
+function getProfiles(){
 
     const [profiles, setProfiledata] = useState([]);
 
@@ -44,4 +23,4 @@ function useProfiles(){
     return profiles;
 }
 
-export default useProfiles;
+export default getProfiles;

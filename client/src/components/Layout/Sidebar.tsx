@@ -8,7 +8,7 @@ const Sidebar: React.FC = () => {
       <nav>
         <ul>
           <li>
-            <Link href="/dashboard">Dashboard</Link>
+            <Link href="/">Dashboard</Link>
           </li>
           <li>
             <Link href="/profile">Profile</Link>
