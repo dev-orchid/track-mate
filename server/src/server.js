@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const trackingRoutes = require('./routes/trackingRoutes');
+const authRoutes = require('./routes/authRouter');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -14,6 +15,7 @@ app.use(cors({origin:'http://localhost:3000'}));
 // app.use(logger);
 
 // Set up tracking API routes
+app.use(authRoutes);
 app.use('/', trackingRoutes);
 
 app.listen(port, () => {

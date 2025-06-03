@@ -8,7 +8,7 @@ import type { NextPage } from 'next';
 
 const Dashboard: NextPage = () => {
   const eventData = useEventsfrom();
-  console.log('Events from hook:', eventData);
+  //console.log('Events from hook:', eventData);
   return (
     <div style={{ display: 'flex' }}>
       <Sidebar />
