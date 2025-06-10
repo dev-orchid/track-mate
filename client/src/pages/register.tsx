@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 
 const Register: React.FC = () => {
   const router = useRouter();
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [form, setForm] = useState({ name: '', email: '',campany_name:'', password: '' });
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -73,6 +73,18 @@ const Register: React.FC = () => {
             id="email"
             name="email"
             value={form.email}
+            onChange={handleChange}
+            required
+            style={{ width: '100%', padding: '0.5rem' }}
+          />
+        </div>
+        <div style={{ marginBottom: '1rem' }}>
+          <label htmlFor="campany_name">Campany Name</label>
+          <input
+            type="text"
+            id="campany_name"
+            name="campany_name"
+            value={form.campany_name}
             onChange={handleChange}
             required
             style={{ width: '100%', padding: '0.5rem' }}

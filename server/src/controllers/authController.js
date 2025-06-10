@@ -1,21 +1,21 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const authUser = require('../models/authModel');
+const authAccount = require('../models/authModel');
 
 exports.userRegisteration = async(req, res)=>{
-    const { name, email, password } = req.body;
+    const { name, email, campany_name, password } = req.body;
     
       // Validate the request
-      if (!name || !email || !password) {
+      if (!name || !email || !password || !campany_name) {
         return res.status(400).json({ success: false, message: 'Missing required fields' });
       }
     
       try {
         // Check if the user already exists
-        const existingUser = await authUser.findOne({ email });
+        const existingUser = await authAccount.findOne({ email });
         if (existingUser) {
-          return res.status(400).json({ success: false, message: 'User already exists' });
+          return res.status(400).json({ success: false, message: 'Account already exists' });
         }
     
         // Hash the password
@@ -23,18 +23,19 @@ exports.userRegisteration = async(req, res)=>{
         const hashedPassword = await bcrypt.hash(password, salt);
     
         // Create and save the new user
-        const newUser = new authUser({
+        const newAccount = new authAccount({
           name,
           email,
+          campany_name,
           password: hashedPassword,
         });
     
-        await newUser.save();
+        await newAccount.save();
     
-        return res.status(201).json({ success: true, message: 'User registered successfully' });
+        return res.status(201).json({ success: true, message: 'Account registered successfully' });
       } catch (error) {
         console.error('Registration error:', error);
-        return res.status(500).json({ success: false, message: 'Server error' });
+        return res.status(500).json({ success: false, message: error });
       }
 }
 exports.authenticateLogin = async (req, res) =>{
@@ -47,7 +48,7 @@ exports.authenticateLogin = async (req, res) =>{
 
   try {
     // Find user by email
-    const user = await authUser.findOne({ email });
+    const user = await authAccount.findOne({ email });
     if (!user) {
       return res.status(400).json({ success: false, message: 'User not found' });
     }

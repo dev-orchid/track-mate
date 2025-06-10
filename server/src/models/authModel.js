@@ -1,4 +1,4 @@
-// server/models/User.js
+// server/models/Account.js
 const mongoose = require('mongoose');
 mongoose
   .connect(
@@ -10,16 +10,22 @@ mongoose
   )
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("Error connecting to MongoDB:", err));
-const UserSchema = new mongoose.Schema(
+const AccountSchema = new mongoose.Schema(
   {
     name: {
       type: String,
       required: [true, 'Please provide a name'],
     },
-    email: {
+    
+     email: {
       type: String,
       required: [true, 'Please provide an email'],
       unique: true,
+    },
+    company_name: {
+      type: String,
+      required: [true, 'Please enter your conmpany'],
+      //unique: true,
     },
     password: {
       type: String,
@@ -29,4 +35,4 @@ const UserSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.models.User || mongoose.model('User', UserSchema);
+module.exports = mongoose.models.Account || mongoose.model('Account', AccountSchema);
