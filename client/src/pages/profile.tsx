@@ -13,10 +13,8 @@ const Profile: NextPage = () => {
     <div style={{ display: 'flex' }}>
       <Sidebar />
       <div style={{ flex: 1 }}>
-        <Header />
-        <main style={{ padding: '1rem' }}>
-        </main>
-        <ProfileData profileData={profiles}/>
+
+        <ProfileData profileData={profiles} />
         <Footer />
       </div>
     </div>

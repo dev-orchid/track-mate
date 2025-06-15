@@ -3,9 +3,17 @@ import React from 'react';
 
 const Footer: React.FC = () => {
   return (
-    <footer style={{ background: '#f5f5f5', padding: '1rem', textAlign: 'center' }}>
-      <p>&copy; {new Date().getFullYear()} Track Mate</p>
+
+
+    <footer className="sticky-footer bg-white">
+      <div className="container my-auto">
+        <div className="copyright text-center my-auto">
+          <span>Copyright &copy; Track Mate</span>
+        </div>
+      </div>
     </footer>
+
+
   );
 };
 
