@@ -1,26 +1,31 @@
 // src/pages/admin/dashboard.tsx
-import Header from '../components/Layout/Header';
+//import Header from '../components/Layout/Header';
 import Sidebar from '../components/Layout/Sidebar';
 import Footer from '../components/Layout/Footer';
 import EventData from '../components/Dashboard/EventData';
-import useEventsfrom  from '../hooks/useEvents';
-import  { GetServerSideProps, NextPage } from 'next';
-import Cookies from 'js-cookie';
+import useEventsfrom from '../hooks/useEvents';
+import { GetServerSideProps, NextPage } from 'next'
+
+//import Cookies from 'js-cookie';
 const Dashboard: NextPage = () => {
+
+
   const eventData = useEventsfrom();
   //console.log('Events from hook:', eventData);
   return (
+
+
     <div style={{ display: 'flex' }}>
       <Sidebar />
       <div style={{ flex: 1 }}>
-        <Header />
-        <main style={{ padding: '1rem' }}>
-          <EventData trackingData={eventData}/>
-          {/* Add further dashboard components here */}
-        </main>
+
+        <EventData trackingData={eventData} />
         <Footer />
       </div>
     </div>
+
+
+
   );
 };
 export const getServerSideProps: GetServerSideProps = async (context) => {
