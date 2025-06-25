@@ -13,7 +13,7 @@ const Sidebar: React.FC = () => {
         {/* Brand */}
         <a className="sidebar-brand d-flex  " href="/">
 
-          <div className="sidebar-brand-text  ">Trackmate </div>
+          <div className="sidebar-brand-text  ">Track Mate </div>
         </a>
 
         <hr className="sidebar-divider my-0" />

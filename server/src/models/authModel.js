@@ -12,11 +12,14 @@ mongoose
   .catch((err) => console.error("Error connecting to MongoDB:", err));
 const AccountSchema = new mongoose.Schema(
   {
-    name: {
+    firstName: {
       type: String,
-      required: [true, 'Please provide a name'],
+      required: [true, 'Please provide a first name'],
     },
-    
+    lastName: {
+      type: String,
+      required: [true, 'Please provide a last name'],
+    },
      email: {
       type: String,
       required: [true, 'Please provide an email'],
@@ -24,8 +27,7 @@ const AccountSchema = new mongoose.Schema(
     },
     company_name: {
       type: String,
-      required: [true, 'Please enter your conmpany'],
-      //unique: true,
+      required: [true, 'Please enter your conmpany name'],
     },
     password: {
       type: String,
