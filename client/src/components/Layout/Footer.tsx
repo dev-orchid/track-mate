@@ -8,7 +8,7 @@ const Footer: React.FC = () => {
     <footer className="sticky-footer bg-white">
       <div className="container my-auto">
         <div className="copyright text-center my-auto">
-          <span>Copyright &copy; Track Mate</span>
+          <span>Copyright &copy; 2025 Track Mate</span>
         </div>
       </div>
     </footer>
