@@ -1,5 +1,28 @@
 {
   "dependencies": {
     "bootstrap": "^5.3.6"
-  }
+  },
+  "name": "track-mate",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "server": "npm run watch --prefix server",
+    "client": "npm run dev --prefix client",
+    "watch": "npm run server & npm run client",
+    "install-server": "npm install --prefix server",
+    "install-client": "npm install --prefix client",
+    "install": "npm run install-server && npm run install-client",
+    "test": "npm run test --prefix server && npm run test --prefix client"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kedar17/track-mate.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kedar17/track-mate/issues"
+  },
+  "homepage": "https://github.com/kedar17/track-mate#readme",
+  "description": ""
 }

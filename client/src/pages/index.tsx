@@ -16,8 +16,9 @@ const Dashboard: NextPage = () => {
 
 
     <div style={{ display: 'flex' }}>
-    <Header />
+      
       <Sidebar />
+      <Header />
       <div style={{ flex: 1 }}>
 
         <EventData trackingData={eventData} />
