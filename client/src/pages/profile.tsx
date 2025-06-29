@@ -11,6 +11,7 @@ const Profile: NextPage = () => {
   //console.log('Profiles from hook:', profiles);
   return (
     <div style={{ display: 'flex' }}>
+      <Header />
       <Sidebar />
       <div style={{ flex: 1 }}>
 
