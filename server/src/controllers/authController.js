@@ -22,7 +22,7 @@ console.log(req.body);
         .json({ success: false, message: "Account already exists" });
     }
 
-    // Hash the password
+    // Hash the password test
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
