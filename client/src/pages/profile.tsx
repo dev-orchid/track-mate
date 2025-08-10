@@ -10,14 +10,19 @@ const Profile: NextPage = () => {
   const profiles = useProfiles();
   //console.log('Profiles from hook:', profiles);
   return (
-    <div style={{ display: 'flex' }}>
-      
-      <Sidebar />
-      <Header />
-      <div style={{ flex: 1 }}>
 
-        <ProfileData profileData={profiles} />
-        <Footer />
+    <div className="dashboard">
+      <aside className="dashboard-sidebar">
+        <Sidebar />
+      </aside>
+      <div className="dashboard-main">
+        <header className="dashboard-header">
+          <Header />
+        </header>
+        <section className="dashboard-content">
+                  <ProfileData profileData={profiles} />
+          <Footer />
+        </section>
       </div>
     </div>
   );

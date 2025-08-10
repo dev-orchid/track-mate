@@ -1,50 +1,40 @@
 // src/pages/admin/dashboard.tsx
-import Header from '../components/Layout/Header';
-import Sidebar from '../components/Layout/Sidebar';
-import Footer from '../components/Layout/Footer';
-import EventData from '../components/Dashboard/EventData';
-import useEventsfrom from '../hooks/useEvents';
-import { GetServerSideProps, NextPage } from 'next'
+import Header from "../components/Layout/Header";
+import Sidebar from "../components/Layout/Sidebar";
+import Footer from "../components/Layout/Footer";
+import EventData from "../components/Dashboard/EventData";
+import useEventsfrom from "../hooks/useEvents";
+import { GetServerSideProps, NextPage } from "next";
 
-//import Cookies from 'js-cookie';
 const Dashboard: NextPage = () => {
-
-
   const eventData = useEventsfrom();
-  //console.log('Events from hook:', eventData);
+
   return (
-
-
-    <div style={{ display: 'flex' }}>
-      
-      <Sidebar />
-      <Header />
-      <div style={{ flex: 1 }}>
-
-        <EventData trackingData={eventData} />
-        <Footer />
+    <div className="dashboard">
+      <aside className="dashboard-sidebar">
+        <Sidebar />
+      </aside>
+      <div className="dashboard-main">
+        <header className="dashboard-header">
+          <Header />
+        </header>
+        <section className="dashboard-content">
+          <EventData trackingData={eventData} />
+          <Footer />
+        </section>
       </div>
     </div>
-
-
-
   );
 };
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const { authToken } = context.req.cookies;
 
-  // Redirect to login if no authentication token is found
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  const { authToken } = ctx.req.cookies;
   if (!authToken) {
     return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
+      redirect: { destination: "/login", permanent: false },
     };
   }
-
-  return {
-    props: {}, // Pass authenticated user data if necessary
-  };
+  return { props: {} };
 };
+
 export default Dashboard;
