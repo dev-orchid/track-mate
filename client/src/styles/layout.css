@@ -1,0 +1,36 @@
+.dashboard {
+  display: flex;
+}
+
+/* 1. Fixed sidebar at top-left */
+.dashboard-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 240px;
+  height: 100vh;
+}
+
+/* 2. Main area shifted right by sidebar width */
+.dashboard-main {
+  margin-left: 240px;
+  flex: 1;                 /* fill remaining space */
+  display: flex;
+  flex-direction: column;  /* header + content stack vertically */
+  height: 100vh;
+}
+
+/* 3. Header sits at top of main, scrolls away or can be sticky */
+.dashboard-header {
+  flex: 0 0 auto;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+}
+
+/* 4. Content fills whatever’s left */
+.dashboard-content {
+  flex: 1;
+  overflow: auto;
+}
