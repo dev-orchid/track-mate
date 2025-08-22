@@ -123,13 +123,13 @@ const EventData: React.FC<EventDataProps> = ({ trackingData }) => {
                         <div>
                           {trackingData.map((item, index) => (
                             <div key={index}>
+
                               <h6 className="h6  ">
                                 <b>Name:</b> {item.userId.name}
                               </h6>
                               <h6 className="h6">
                                 <b>Email:</b> {item.userId.email}
                               </h6>
-
                               {item.events.map((event, idx) => (
                                 <table className="table border mt-3" key={idx}>
                                   <thead>
