@@ -29,6 +29,10 @@ const AccountSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Please enter your conmpany name'],
     },
+    company_id: {
+      type: String,
+      required: [true,'Please enter your conmpany id'],
+    },
     password: {
       type: String,
       required: [true, 'Please provide a password'],
