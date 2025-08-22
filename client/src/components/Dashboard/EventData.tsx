@@ -1,5 +1,5 @@
 // src/components/Dashboard/EventData.tsx
-import React from 'react';
+import React from "react";
 
 interface ProductInfo {
   productName: string;
@@ -28,27 +28,21 @@ interface EventDataProps {
   trackingData: TrackingData[];
 }
 
-
-
 const EventData: React.FC<EventDataProps> = ({ trackingData }) => {
-  console.log('Tracking Data in EventData:', trackingData); // Debug log
+  console.log("Tracking Data in EventData:", trackingData); // Debug log
 
   return (
-
     <>
-
       <div id="content-wrapper" className="d-flex flex-column w-100">
         {/* Main Content */}
         <div id="content">
           {/* Topbar */}
-          
 
           {/* Begin Page Content */}
           <div className="container-fluid">
             {/* Page Heading */}
             <div className="d-sm-flex align-items-center justify-content-between mb-4">
               <h1 className="h3 mb-0 text-gray-800">Dashboard</h1>
-
             </div>
 
             {/* Content Row */}
@@ -59,8 +53,12 @@ const EventData: React.FC<EventDataProps> = ({ trackingData }) => {
                   <div className="card-body">
                     <div className="row no-gutters align-items-center">
                       <div className="col mr-2">
-                        <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">Earnings (Monthly)</div>
-                        <div className="h5 mb-0 font-weight-bold text-gray-800">$40,000</div>
+                        <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                          Earnings (Monthly)
+                        </div>
+                        <div className="h5 mb-0 font-weight-bold text-gray-800">
+                          $40,000
+                        </div>
                       </div>
                       <div className="col-auto">
                         <i className="fas fa-calendar fa-2x text-gray-300"></i>
@@ -76,10 +74,14 @@ const EventData: React.FC<EventDataProps> = ({ trackingData }) => {
                   <div className="card-body">
                     <div className="row no-gutters align-items-center">
                       <div className="col mr-2">
-                        <div className="text-xs font-weight-bold text-info text-uppercase mb-1">Tasks</div>
+                        <div className="text-xs font-weight-bold text-info text-uppercase mb-1">
+                          Tasks
+                        </div>
                         <div className="row no-gutters align-items-center">
                           <div className="col-auto">
-                            <div className="h5 mb-0 mr-3 font-weight-bold text-gray-800">50%</div>
+                            <div className="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+                              50%
+                            </div>
                           </div>
                           <div className="col">
                             <div className="progress progress-sm mr-2">
@@ -91,7 +93,6 @@ const EventData: React.FC<EventDataProps> = ({ trackingData }) => {
                                 aria-valuemin={0}
                                 aria-valuemax={100}
                               />
-
                             </div>
                           </div>
                         </div>
@@ -107,39 +108,30 @@ const EventData: React.FC<EventDataProps> = ({ trackingData }) => {
               {/* Repeat similar structure for other cards */}
             </div>
 
-
-
-
             {/* Development Approach */}
             <div className="row">
               <div className="col-lg-12 mb-4">
                 <div className="card shadow mb-4">
                   <div className="card-header py-3">
-                    <h6 className="m-0 font-weight-bold text-primary">Development Approach</h6>
+                    <h6 className="m-0 font-weight-bold text-primary">
+                      Development Approach
+                    </h6>
                   </div>
                   <div className="card-body">
-
-
-
-
-
-
                     <div>
                       {trackingData && trackingData.length > 0 ? (
                         <div>
                           {trackingData.map((item, index) => (
                             <div key={index}>
-
-                              <h6 className='h6  '><b>Name:</b> {item.userId.name}</h6>
-                              <h6 className='h6'><b>Email:</b>  {item.userId.email}</h6>
-
-
-
+                              <h6 className="h6  ">
+                                <b>Name:</b> {item.userId.name}
+                              </h6>
+                              <h6 className="h6">
+                                <b>Email:</b> {item.userId.email}
+                              </h6>
 
                               {item.events.map((event, idx) => (
-                                <table className="table border mt-3" key={idx} >
-
-
+                                <table className="table border mt-3" key={idx}>
                                   <thead>
                                     <tr>
                                       <th scope="col">Event Type</th>
@@ -151,36 +143,39 @@ const EventData: React.FC<EventDataProps> = ({ trackingData }) => {
                                   <tbody>
                                     <tr>
                                       <th scope="row"> {event.eventType}</th>
-                                      <td>{" "}
-                                        {event.timestamp.toLocaleString()}</td>
-                                      <td> <strong>Address:</strong> {event.eventData.address}</td>
-                                      <td><ul>
-                                        {event.eventData.productInfos.map((product, idx) => (
-                                          <li key={idx}>
-                                            <strong>Product:</strong> {product.productName}
-                                            <br />
-                                            <strong>Price:</strong> ${product.price}
-                                            <br />
-                                            <strong>Product ID:</strong> {product.productId}
-                                          </li>
-                                        ))}
-                                      </ul></td>
+                                      <td>
+                                        {" "}
+                                        {event.timestamp.toLocaleString()}
+                                      </td>
+                                      <td>
+                                        {" "}
+                                        <strong>Address:</strong>{" "}
+                                        {event.eventData.address}
+                                      </td>
+                                      <td>
+                                        <ul>
+                                          {event.eventData.productInfos.map(
+                                            (product, idx) => (
+                                              <li key={idx}>
+                                                <strong>Product:</strong>{" "}
+                                                {product.productName}
+                                                <br />
+                                                <strong>Price:</strong> $
+                                                {product.price}
+                                                <br />
+                                                <strong>
+                                                  Product ID:
+                                                </strong>{" "}
+                                                {product.productId}
+                                              </li>
+                                            )
+                                          )}
+                                        </ul>
+                                      </td>
                                     </tr>
-
                                   </tbody>
-
-
-
-
-
-
-
-
                                 </table>
                               ))}
-
-
-
                             </div>
                           ))}
                         </div>
@@ -188,11 +183,6 @@ const EventData: React.FC<EventDataProps> = ({ trackingData }) => {
                         <p>No tracking data available.</p>
                       )}
                     </div>
-
-
-
-
-
                   </div>
                 </div>
               </div>
@@ -201,17 +191,8 @@ const EventData: React.FC<EventDataProps> = ({ trackingData }) => {
           {/* /.container-fluid */}
         </div>
         {/* End of Main Content */}
-
-
-
-      </div >
-
-
-
-
-
+      </div>
     </>
-
   );
 };
 

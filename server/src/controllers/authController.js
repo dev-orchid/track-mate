@@ -2,10 +2,11 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const authAccount = require("../models/authModel");
+const { generateCompanyId } = require("../utils/generateCompanyId")
 
 exports.userRegisteration = async (req, res) => {
   const { firstName, lastName, email, company_name, password } = req.body;
-console.log(req.body);
+  console.log(req.body);
   // Validate the request
   if (!firstName || !lastName || !email || !password || !company_name) {
     return res
@@ -25,15 +26,15 @@ console.log(req.body);
     // Hash the password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-
+	const company_id = generateCompanyId();
     // Create and save the new user
     const newAccount = new authAccount({
       firstName,
       lastName,
       email,
-	  password: hashedPassword,
+      password: hashedPassword,
       company_name,
-      
+	  company_id
     });
 
     await newAccount.save();
