@@ -8,7 +8,7 @@ import type { NextPage } from 'next';
 
 const Profile: NextPage = () => {
   const profiles = useProfiles();
-  //console.log('Profiles from hook:', profiles);
+  console.log('Profiles from hook:', profiles);
   return (
 
     <div className="dashboard">

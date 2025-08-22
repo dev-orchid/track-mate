@@ -19,7 +19,6 @@ const profileSchema = new mongoose.Schema({
 	// Other fields…
 });
 
-
 //New Event Schema
 const EventSchema = new mongoose.Schema({
 	userId: {
@@ -49,25 +48,46 @@ const EventSchema = new mongoose.Schema({
 //End
 const Profile = mongoose.model("Profile", profileSchema);
 const Event = mongoose.model("Event", EventSchema);
+// 1. Define virtual 'events' that references Event.userId
+profileSchema.virtual("events", {
+	ref: "Event",
+	localField: "_id",
+	foreignField: "userId",
+	justOne: false,
+});
 
 //to get Event data from Event Schema
 exports.getAllEvent = async () => {
-    try {
-        return await Event.find({},{_id:0,__v:0 }).populate('userId');
-    } catch (err) {
-        console.error("Error finding users:", err);
-        return [];
-    }
+	try {
+		return await Event.find({}, { _id: 0, __v: 0 }).populate("userId");
+	} catch (err) {
+		console.error("Error finding users:", err);
+		return [];
+	}
 };
 //to get all profile from Profile Schema
 exports.getAllProfile = async () => {
-    try {
-        return await Profile.find({},{_id:0,__v:0 });
-    } catch (err) {
-        console.error("Error finding users:", err);
-        return [];
-    }
+	try {
+		return await Profile.find({}, { _id: 0, __v: 0 });
+	} catch (err) {
+		console.error("Error finding users:", err);
+		return [];
+	}
 };
+exports.getAllProfilesWithEvents = async () => {
+	try {
+		return await Profile.find({}, { __v: 0 }) // drop __v; keeps _id by default
+			.populate({
+				path: "events", // the virtual we defined
+				select: "-_id -__v", // drop _id & __v in events
+			})
+			.lean({ virtuals: true });
+	} catch (err) {
+		console.error("Error fetching profiles with events:", err);
+		return [];
+	}
+};
+
 async function insertEvents(eventData) {
 	try {
 		const responseData = await new Event(eventData).save();
