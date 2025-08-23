@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/router";
 import Cookies from "js-cookie";
+import axiosInstance from "../utils/axiosInstance";
 
 const Login: React.FC = () => {
 	const router = useRouter();
@@ -19,23 +20,24 @@ const Login: React.FC = () => {
 		setError("");
 
 		try {
-			const res = await fetch("http://localhost:8000/login", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(form),
-			});
-
-			const data = await res.json();
-
-			if (!res.ok) {
-				setError(data.message || "Login failed");
-			} else {
-				Cookies.set("authToken", data.token, { expires: 7 });
-				router.push("/"); // Redirect after successful login
+			const res = await axiosInstance.post("/login", form);
+			// Check if API returned success
+			if (!res.data.success) {
+				setError(res.data.message || "Login failed");
+				return; // Stop execution if login failed
 			}
-		} catch (err) {
-			setError("An unexpected error occurred.");
-		}
+
+			const { accessToken,refreshToken } = res.data;
+
+			Cookies.set("authToken", accessToken, { expires: 7 });
+			localStorage.setItem("authToken", accessToken);
+			localStorage.setItem("refresh_token", refreshToken);
+			
+
+			router.push("/"); // Redirect after successful login
+		} catch (error: any) {
+				setError(error.response?.data?.message || "Login failed");
+			}
 
 		setLoading(false);
 	};

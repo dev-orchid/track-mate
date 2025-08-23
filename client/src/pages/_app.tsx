@@ -4,12 +4,30 @@ import '../styles/sb-admin-2.css';
 import '../styles/layout.css';
 import type { AppProps } from 'next/app';
 import { AuthProvider } from '../contexts/AuthContext';
+import ProtectedRoute from '../components/ProtectedRoute';
 
-function MyApp({ Component, pageProps }: AppProps) {
+// List of public pages that don't require authentication
+const publicPages = ['/login', '/register'];
+
+function MyApp({ Component, pageProps, router }: AppProps) {
+  const isPublicPage = publicPages.includes(router.pathname);
+
+  if (isPublicPage) {
+    // Render public pages without ProtectedRoute
+    return (
+      <AuthProvider>
+        <Component {...pageProps} />
+      </AuthProvider>
+    );
+  }
+
+  // All other pages are protected
   return (
-    <AuthProvider>
-      <Component {...pageProps} />
-    </AuthProvider>
+    <ProtectedRoute>
+      <AuthProvider>
+        <Component {...pageProps} />
+      </AuthProvider>
+    </ProtectedRoute>
   );
 }
 
