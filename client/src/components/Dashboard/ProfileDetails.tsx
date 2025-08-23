@@ -97,7 +97,7 @@ export default function ProfileDetails() {
                             activeTab === "details" ? "active" : ""
                           }`}
                           onClick={() => setActiveTab("details")}
-                          href="#"
+                         
                         >
                           Details
                         </a>
@@ -108,7 +108,7 @@ export default function ProfileDetails() {
                             activeTab === "metrics" ? "active" : ""
                           }`}
                           onClick={() => setActiveTab("metrics")}
-                          href="#"
+                         
                         >
                           Metrics and Insights
                         </a>
@@ -119,7 +119,7 @@ export default function ProfileDetails() {
                             activeTab === "segments" ? "active" : ""
                           }`}
                           onClick={() => setActiveTab("segments")}
-                          href="#"
+                         
                         >
                           List and Segments
                         </a>
@@ -130,7 +130,7 @@ export default function ProfileDetails() {
                             activeTab === "objects" ? "active" : ""
                           }`}
                           onClick={() => setActiveTab("objects")}
-                          href="#"
+                         
                         >
                           Objects
                         </a>
