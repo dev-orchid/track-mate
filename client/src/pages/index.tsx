@@ -1,13 +1,27 @@
-// src/pages/admin/dashboard.tsx
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import Header from "../components/Layout/Header";
 import Sidebar from "../components/Layout/Sidebar";
 import Footer from "../components/Layout/Footer";
 import EventData from "../components/Dashboard/EventData";
 import useEventsfrom from "../hooks/useEvents";
-import { GetServerSideProps, NextPage } from "next";
+import { getValidToken } from "../utils/authHelper";
 
-const Dashboard: NextPage = () => {
+const Dashboard = () => {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
   const eventData = useEventsfrom();
+
+  useEffect(() => {
+    if (!getValidToken()) {
+      alert(getValidToken());
+      router.replace("/login");
+      return;
+    }
+    setLoading(false);
+  }, []);
+
+  if (loading) return <p>Loading...</p>;
 
   return (
     <div className="dashboard">
@@ -25,16 +39,6 @@ const Dashboard: NextPage = () => {
       </div>
     </div>
   );
-};
-
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const { authToken } = ctx.req.cookies;
-  if (!authToken) {
-    return {
-      redirect: { destination: "/login", permanent: false },
-    };
-  }
-  return { props: {} };
 };
 
 export default Dashboard;
