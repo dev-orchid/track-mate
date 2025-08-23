@@ -1,5 +1,6 @@
 // src/components/Layout/Header.tsx
 import React, { useState, useRef, useEffect } from "react";
+import { useLogout } from "@/src/utils/logout";
 
 const Header: React.FC = () => {
   // 1) Hook goes _inside_ the component
@@ -30,6 +31,10 @@ const Header: React.FC = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  // #4. logout function
+  const logout = useLogout();
+
 
   return (
     <nav className="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
@@ -72,15 +77,17 @@ const Header: React.FC = () => {
               Activity Log
             </a>
             <div className="dropdown-divider"></div>
-            <a
+            <button
+              type="button"
               className="dropdown-item"
-              href="#"
               data-toggle="modal"
               data-target="#logoutModal"
+              onClick={logout}
             >
               <i className="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
               Logout
-            </a>
+            </button>
+
           </div>
         </li>
       </ul>
