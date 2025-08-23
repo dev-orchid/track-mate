@@ -50,44 +50,101 @@ exports.userRegisteration = async (req, res) => {
 exports.authenticateLogin = async (req, res) => {
   const { email, password } = req.body;
 
-  // Validate the request
   if (!email || !password) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Missing required fields" });
+    return res.status(400).json({ success: false, message: "Missing required fields" });
   }
 
   try {
-    // Find user by email
     const user = await authAccount.findOne({ email });
     if (!user) {
-      return res
-        .status(400)
-        .json({ success: false, message: "User not found" });
+      return res.status(400).json({ success: false, message: "User not found" });
     }
 
-    // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid password" });
+      return res.status(400).json({ success: false, message: "Invalid password" });
     }
 
-    // Generate a JWT token
-    const token = jwt.sign(
+    // Generate tokens
+    const accessToken = jwt.sign(
       { userId: user._id, email: user.email },
       process.env.JWT_SECRET,
-      {
-        expiresIn: "7d",
-      }
+      { expiresIn: "1m" }
     );
 
-    res
-      .status(200)
-      .json({ success: true, message: "Login successful", token, user });
+    const refreshToken = jwt.sign(
+      { userId: user._id },
+      process.env.REFRESH_TOKEN_SECRET,
+      { expiresIn: "2m" }
+    );
+
+    // Save refresh token WITHOUT triggering validation
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false });
+
+    const { password: _, ...safeUser } = user.toObject();
+
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      accessToken,
+      refreshToken,
+      user: safeUser,
+    });
   } catch (error) {
     console.error("Login error:", error);
-    return res.status(500).json({ success: false, message: error });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+
+// controllers/authController.js
+exports.refreshAccessToken = async (req, res) => {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    return res.status(401).json({ success: false, message: "No refresh token provided" });
+  }
+
+  try {
+    // Verify refresh token
+    const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+
+    // Check if user exists and token matches
+    const user = await authAccount.findById(decoded.userId);
+    if (!user || user.refreshToken !== refreshToken) {
+      return res.status(403).json({ success: false, message: "Invalid refresh token" });
+    }
+
+    // Issue new access token
+    const newAccessToken = jwt.sign(
+      { userId: user._id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "1m" }
+    );
+
+    // Issue new refresh token
+    const newRefreshToken = jwt.sign(
+      { userId: user._id },
+      process.env.REFRESH_TOKEN_SECRET,
+      { expiresIn: "2m" }
+    ); 
+
+    // Save new refresh token in DB
+    user.refreshToken = newRefreshToken;
+    
+    await user.save({ validateBeforeSave: false });
+
+    // Return both tokens
+    res.status(200).json({
+      success: true,
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
+    });
+  } catch (err) {
+    console.error("Refresh token error:", err);
+    res.status(403).json({ success: false, message: "Invalid or expired refresh token" });
+  }
+};
+
+

@@ -1,27 +1,31 @@
 import { useCallback, useEffect, useState } from "react";
+import { getEventData as fetchEventData } from "./requests";
 
-import { getProfileData, geEventData } from "./requests";
+function useEvents() {
+    const [events, setEvents] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-function getEvents(){
-
-    const [events, setEventData] = useState([]);
-
-    const getEventData= useCallback(async ()=>{
-
-        const eventData = await geEventData();
-
-        setEventData(eventData.data.flat());
-
+    const loadEvents = useCallback(async () => {
+        try {
+            setLoading(true);
+            const eventData = await fetchEventData();
+            setEvents(eventData.data.flat());
+        } catch (err) {
+            setError(err);
+            console.error("Error fetching events:", err);
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
-    useEffect(()=>{
+    useEffect(() => {
+        let isMounted = true;
+        if (isMounted) loadEvents();
+        return () => { isMounted = false; };
+    }, [loadEvents]);
 
-        getEventData();
-
-    }, [getEventData] );
-
-    return events;
+    return { events, loading, error };
 }
 
-
-export default getEvents;
+export default useEvents;

@@ -37,6 +37,10 @@ const AccountSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Please provide a password'],
     },
+    refreshToken: {
+      type: String,
+      default: null, // initially empty
+    },
   },
   { timestamps: true }
 );
