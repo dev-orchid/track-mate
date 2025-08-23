@@ -1,32 +1,47 @@
-// src/components/Dashboard/EventData.tsx
-import React from "react";
-import { useState } from "react";
+// src/components/Dashboard/ProfileDetails.tsx
 
-interface profileData {
-  userId: {
-    name: string;
-    phone: number;
-    email: string;
-  };
-}
+import {React, useState} from "react";
+import { useRouter } from "next/router";
+import useProfileDetails from "../../hooks/useProfileDetails";
 
-interface profileDataProps {
-  profileData: profileData[];
-}
-
-const EventData: React.FC<profileDataProps> = ({ profileData }) => {
-  console.log("Tracking Data in EventData:", profileData); // Debug log
-
+export default function ProfileDetails() {
+  const router = useRouter();
+  const { id } = router.query as { id?: string };
+  const { profile, loading, error } = useProfileDetails(id);
   const [activeTab, setActiveTab] = useState("home");
-
+  
   const [activeIndex, setActiveIndex] = useState(null);
 
   const toggle = (index) => {
     setActiveIndex(activeIndex === index ? null : index);
   };
 
+  if (!id || loading) {
+    return (
+      <div className="text-center py-5">
+        <p>Loading profile…</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-5 text-danger">
+        <p>Error loading profile: {error}</p>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="text-center py-5 text-muted">
+        <p>Profile not found</p>
+      </div>
+    );
+  }
+
   return (
-    <div>
+     <div>
       <div id="content-wrapper" className="d-flex flex-column w-100">
         {/* Main Content */}
         <div id="content">
@@ -496,7 +511,6 @@ const EventData: React.FC<profileDataProps> = ({ profileData }) => {
         {/* Footer */}
       </div>
     </div>
+    
   );
-};
-
-export default EventData;
+}
