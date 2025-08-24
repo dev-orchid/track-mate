@@ -69,13 +69,13 @@ exports.authenticateLogin = async (req, res) => {
     const accessToken = jwt.sign(
       { userId: user._id, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: "1m" }
+      { expiresIn: "59m" }
     );
 
     const refreshToken = jwt.sign(
       { userId: user._id },
       process.env.REFRESH_TOKEN_SECRET,
-      { expiresIn: "2m" }
+      { expiresIn: "1h" }
     );
 
     // Save refresh token WITHOUT triggering validation
@@ -120,14 +120,14 @@ exports.refreshAccessToken = async (req, res) => {
     const newAccessToken = jwt.sign(
       { userId: user._id, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: "1m" }
+      { expiresIn: "59m" }
     );
 
     // Issue new refresh token
     const newRefreshToken = jwt.sign(
       { userId: user._id },
       process.env.REFRESH_TOKEN_SECRET,
-      { expiresIn: "2m" }
+      { expiresIn: "1h" }
     ); 
 
     // Save new refresh token in DB
