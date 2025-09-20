@@ -25,12 +25,12 @@ async function getProfileData() {
     }
 }
 export async function getProfileById(id: string) {
-  const res = await fetch(`${API_BASE}/api/profile/${id}`);
-  if (!res.ok) {
-    if (res.status === 404) return null;
-    throw new Error(`Error fetching profile ${id} (${res.status})`);
-  }
-  return res.json();
+    const res = await axiosInstance.get(`/api/profile/${id}`);
+    if (!res.data) {
+        if (res.status === 404) return null;
+        throw new Error(`Error fetching profile ${id} (${res.status})`);
+    }
+  return res.data;
 }
 export {
     getEventData,
