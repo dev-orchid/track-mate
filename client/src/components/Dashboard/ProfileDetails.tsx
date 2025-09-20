@@ -102,7 +102,7 @@ export default function ProfileDetails() {
                           Details
                         </a>
                       </li>
-                      <li className="nav-item">
+                      <li className="nav-item" onClick={() => toggle(0)}>
                         <a
                           className={`nav-link ${
                             activeTab === "metrics" ? "active" : ""
@@ -222,7 +222,7 @@ export default function ProfileDetails() {
                         }`}
                       >
                         <div className="accordion" id="accordionExample">
-                          {/* Session Summary */}
+                       
                           <div className="card">
                             <div className="card-header" id="heading0">
                               <h2 className="mb-0">
@@ -394,8 +394,8 @@ export default function ProfileDetails() {
                             {allEvents.map((event, index) => (
                               <div key={index} className="timeline-item">
                                 <div className={`timeline-dot ${
-                                  event.eventType === 'purchase' ? 'success' : 
-                                  event.eventType === 'view' ? 'info' :
+                                  event.eventType === 'Purchase' ? 'success' : 
+                                  event.eventType === 'Cart Update' ? 'info' :
                                   event.eventType === 'add_to_cart' ? 'warning' : 'gray'
                                 }`}></div>
                                 <div className="timeline-content">

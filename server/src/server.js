@@ -13,11 +13,16 @@ app.use(cors({origin:'http://localhost:3000'}));
 // Use custom logger middleware (optional)
 // const logger = require('./middleware/logger');
 // app.use(logger);
+const { connectDB } = require('./utils/dbConnect');
+(async () => {
+  await connectDB();               // connect once
+  // Set up tracking API routes
+  app.use(authRoutes);
+  app.use('/', trackingRoutes);
 
-// Set up tracking API routes
-app.use(authRoutes);
-app.use('/', trackingRoutes);
+  app.listen(port, () => {
+    console.log(`Backend server running on port ${port}`);
+  });
+})();
 
-app.listen(port, () => {
-  console.log(`Backend server running on port ${port}`);
-});
+

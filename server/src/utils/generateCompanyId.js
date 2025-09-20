@@ -1,8 +1,10 @@
-// utils/generateCompanyId.ts
-import { customAlphabet } from 'nanoid'
+// utils/generateCompanyId.js
+const { customAlphabet } = require( 'nanoid' );
 
-const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 5)
+const nanoid = customAlphabet( '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 5 );
 
-export function generateCompanyId() {
-  return `TM-${nanoid()}`
+function generateCompanyId () {
+  return `TM-${ nanoid() }`;
 }
+
+module.exports = { generateCompanyId };

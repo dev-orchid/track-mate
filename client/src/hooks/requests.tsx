@@ -1,9 +1,7 @@
 import axiosInstance from '../utils/axiosInstance';
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-
-
-//  Get Event Data
+//Get Event Data
 async function getEventData() {
     try {
         const response = await axiosInstance.get('/api/getData');
@@ -13,8 +11,7 @@ async function getEventData() {
         throw error;
     }
 }
-
-//  Get Profile Data
+//Get Profile Data
 async function getProfileData() {
     try {
         const response = await axiosInstance.get('/api/profile');
@@ -25,12 +22,14 @@ async function getProfileData() {
     }
 }
 export async function getProfileById(id: string) {
-    const res = await axiosInstance.get(`/api/profile/${id}`);
-    if (!res.data) {
-        if (res.status === 404) return null;
-        throw new Error(`Error fetching profile ${id} (${res.status})`);
+    const response = await axiosInstance.get(`/api/profile/${id}`);
+    //console.log(response);
+    if (!response.data) {
+        if (response.status === 404) return null;
+        throw new Error(`Error fetching profile ${id} (${response.status})`);
     }
-  return res.data;
+    return response.data;
+
 }
 export {
     getEventData,

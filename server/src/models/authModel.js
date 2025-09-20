@@ -1,41 +1,31 @@
 // server/models/Account.js
-const mongoose = require('mongoose');
-mongoose
-  .connect(
-    "mongodb+srv://dhruvakedar:LlN9ZSfKhJovOPMm@nascluster.hhmccnc.mongodb.net/track_mate?retryWrites=true&w=majority&appName=NasCluster",
-    {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    }
-  )
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((err) => console.error("Error connecting to MongoDB:", err));
+const mongoose = require( '../utils/dbConnect' );
 const AccountSchema = new mongoose.Schema(
   {
     firstName: {
       type: String,
-      required: [true, 'Please provide a first name'],
+      required: [ true, 'Please provide a first name' ],
     },
     lastName: {
       type: String,
-      required: [true, 'Please provide a last name'],
+      required: [ true, 'Please provide a last name' ],
     },
-     email: {
+    email: {
       type: String,
-      required: [true, 'Please provide an email'],
+      required: [ true, 'Please provide an email' ],
       unique: true,
     },
     company_name: {
       type: String,
-      required: [true, 'Please enter your conmpany name'],
+      required: [ true, 'Please enter your conmpany name' ],
     },
     company_id: {
       type: String,
-      required: [true,'Please enter your conmpany id'],
+      required: [ true, 'Please enter your conmpany id' ],
     },
     password: {
       type: String,
-      required: [true, 'Please provide a password'],
+      required: [ true, 'Please provide a password' ],
     },
     refreshToken: {
       type: String,
@@ -45,4 +35,4 @@ const AccountSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.models.Account || mongoose.model('Account', AccountSchema);
+module.exports = mongoose.models.Account || mongoose.model( 'Account', AccountSchema );
