@@ -29,6 +29,7 @@ export async function getProfileById(id: string) {
         throw new Error(`Error fetching profile ${id} (${response.status})`);
     }
     return response.data;
+
 }
 export {
     getEventData,
