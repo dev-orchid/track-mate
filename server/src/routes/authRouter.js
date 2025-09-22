@@ -3,5 +3,7 @@ const router = express.Router();
 const authController= require('../controllers/authController');
 router.post('/register',authController.userRegisteration);
 router.post('/login',authController.authenticateLogin);
+router.get('/auth/me',authController.getCurrentUser);
+router.put('/auth/me',authController.updateCurrentUser);
 router.post('/refreshtoken',authController.refreshAccessToken);
 module.exports = router;

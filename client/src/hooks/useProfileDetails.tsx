@@ -51,7 +51,7 @@ export default function useProfileDetails(id?: string) {
         if (data === null) {
           setProfile(null);
         } else {
-          // data is expected to be { _id, name, email, phone, lastActive, events }
+          //data is expected to be { _id, name, email, phone, lastActive, events }
           setProfile(data);
         }
       })

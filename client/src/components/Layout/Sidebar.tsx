@@ -31,7 +31,7 @@ const Sidebar: React.FC = () => {
 
         <li className="nav-item  ">
           <Link className="nav-link" href="/profile">
-            <i className="fas fa-fw fa-tachometer-alt"></i>
+            <i className="fas fa-users"></i>
             <span>Profile</span>
           </Link>
         </li>
@@ -48,7 +48,7 @@ const Sidebar: React.FC = () => {
         <hr className="sidebar-divider my-0" />
 
         <li className="nav-item  ">
-          <Link className="nav-link" href="/settings">
+          <Link className="nav-link" href="/settings/account/personal">
             <i className="fas fa-fw fa-cog"></i>
             <span>Settings</span>
           </Link>
