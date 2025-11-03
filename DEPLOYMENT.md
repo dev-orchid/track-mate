@@ -289,6 +289,15 @@ Configure branch settings in: Project Settings → Git → Production Branch
 
 ### Deployment Configuration
 
+**Error**: `500: INTERNAL_SERVER_ERROR` or `FUNCTION_INVOCATION_FAILED` on server
+- **Cause**: The regular logger tries to write files, which doesn't work in serverless
+- **Solution**: The serverless handler (`server/api/index.js`) uses `logger.serverless.js` which only logs to console
+- **If still failing**: Check Vercel logs (project → Functions tab) for the specific error
+- **Common fixes**:
+  - Verify all environment variables are set correctly
+  - Check MongoDB URI allows connections from `0.0.0.0/0`
+  - Ensure no filesystem operations in code
+
 **Error**: `No Next.js version detected` or `Could not identify Next.js version`
 - **Cause**: Root Directory is not set to `client` in Vercel settings
 - **Solution**:

@@ -1,12 +1,11 @@
-require('dotenv').config();
+// Serverless environment - use console logging only
 const express = require('express');
 const cors = require('cors');
 const mongoSanitizeMiddleware = require('../src/middleware/mongoSanitize');
 const trackingRoutes = require('../src/routes/trackingRoutes');
 const authRoutes = require('../src/routes/authRouter');
 const marketingRoutes = require('../src/routes/marketingRoutes');
-const { addRequestId, logRequestResponse, morganLogger } = require('../src/middleware/requestLogger');
-const logger = require('../src/utils/logger');
+const logger = require('../src/utils/logger.serverless');
 const { connectDB } = require('../src/utils/dbConnect');
 
 const app = express();
@@ -20,9 +19,6 @@ if (missingVars.length > 0) {
   });
   console.error('Missing required environment variables:', missingVars.join(', '));
 }
-
-// Request tracking middleware (must be first to assign req.id)
-app.use(addRequestId);
 
 // Middleware to parse JSON (must come before mongo-sanitize)
 app.use(express.json());
@@ -56,10 +52,6 @@ app.use(cors({
 // Security: Sanitize user input to prevent NoSQL injection
 app.use(mongoSanitizeMiddleware);
 
-// Logging middleware
-app.use(logRequestResponse);
-app.use(morganLogger);
-
 // Initialize database connection
 let dbConnected = false;
 const initDB = async () => {
@@ -92,6 +84,21 @@ app.use('/api', marketingRoutes);
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Error handling middleware (must be last)
+app.use((err, req, res, next) => {
+  logger.error('Unhandled error', {
+    error: err.message,
+    stack: err.stack,
+    path: req.path
+  });
+
+  res.status(err.statusCode || 500).json({
+    success: false,
+    message: err.message || 'Internal server error',
+    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack })
+  });
 });
 
 // Export the Express app for Vercel serverless
