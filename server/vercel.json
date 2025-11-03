@@ -11,11 +11,5 @@
       "src": "/(.*)",
       "dest": "api/index.js"
     }
-  ],
-  "env": {
-    "MONGODB_URI": "@mongodb-uri",
-    "JWT_SECRET": "@jwt-secret",
-    "REFRESH_TOKEN_SECRET": "@refresh-token-secret",
-    "NODE_ENV": "production"
-  }
+  ]
 }

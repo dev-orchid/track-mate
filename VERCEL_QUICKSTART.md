@@ -24,11 +24,14 @@ git push origin main
 
 ### 3. Configure Project
 
-Vercel will auto-detect settings from `vercel.json`. Just add environment variable:
+Vercel will auto-detect settings from `vercel.json`. Just add one environment variable:
 
-**Environment Variables:**
-- Key: `NEXT_PUBLIC_API_URL`
-- Value: Your backend URL (e.g., `https://your-api.railway.app` or `https://your-server.vercel.app`)
+**Add Environment Variable:**
+1. Click "Environment Variables" during setup
+2. Add this variable:
+   - Key: `NEXT_PUBLIC_API_URL`
+   - Value: Your backend URL (e.g., `https://your-api.railway.app` or `https://your-server.vercel.app`)
+3. Click "Add"
 
 ### 4. Deploy
 
@@ -51,13 +54,13 @@ Follow steps 1-4 above, but use:
 2. Select same repository
 3. In "Configure Project":
    - **Root Directory**: Select `server`
-4. Add **Environment Variables**:
-   ```
-   MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/trackmate
-   JWT_SECRET=your-secret-key-here
-   REFRESH_TOKEN_SECRET=your-refresh-secret-here
-   NODE_ENV=production
-   ```
+4. **Click "Environment Variables"** and add each one individually:
+   - `MONGODB_URI` = `mongodb+srv://user:pass@cluster.mongodb.net/trackmate`
+   - `JWT_SECRET` = `your-secret-key-here` (use a strong random string)
+   - `REFRESH_TOKEN_SECRET` = `your-refresh-secret-here` (use a different strong random string)
+   - `NODE_ENV` = `production`
+
+   Click "Add" after entering each variable.
 5. Click "Deploy"
 6. Copy your server URL (e.g., `https://trackmate-server.vercel.app`)
 

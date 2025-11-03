@@ -100,12 +100,18 @@ This option deploys both the client and server to Vercel using serverless functi
 
    c. **Add Server Environment Variables**
 
+      **IMPORTANT**: Add these in the Vercel dashboard during setup, NOT in vercel.json!
+
+      During project import, click "Environment Variables" and add each one:
+
       | Key | Value | Example |
       |-----|-------|---------|
       | `MONGODB_URI` | Your MongoDB connection string | `mongodb+srv://user:pass@cluster.mongodb.net/trackmate` |
       | `JWT_SECRET` | Strong random string | `your-super-secret-jwt-key-here` |
       | `REFRESH_TOKEN_SECRET` | Another strong random string | `your-refresh-token-secret-here` |
       | `NODE_ENV` | `production` | `production` |
+
+      Click "Add" after entering each variable.
 
    d. **Deploy Server**
       - Click "Deploy"
@@ -265,6 +271,14 @@ Once set up, Vercel automatically deploys:
 Configure branch settings in: Project Settings → Git → Production Branch
 
 ## Troubleshooting
+
+### Deployment Configuration
+
+**Error**: `Environment Variable "MONGODB_URI" references Secret "mongodb-uri", which does not exist`
+- **Cause**: This happens if you have environment variable references in vercel.json
+- **Solution**: Remove the `env` section from vercel.json (already fixed in this repo)
+- **How to add vars**: Always add environment variables through the Vercel dashboard during project setup, NOT in vercel.json
+- Go to project settings → Environment Variables → Add each variable individually
 
 ### Build Fails
 
