@@ -4,13 +4,13 @@ import Header from "../components/Layout/Header";
 import Sidebar from "../components/Layout/Sidebar";
 import Footer from "../components/Layout/Footer";
 import EventData from "../components/Dashboard/EventData";
-import useEventsfrom from "../hooks/useEvents";
+import useProfile from "../hooks/useProfile";
 import { getValidToken } from "../utils/authHelper";
 
 const Dashboard = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const eventData = useEventsfrom();
+  const profileData = useProfile();
 
   useEffect(() => {
     if (!getValidToken()) {
@@ -33,7 +33,7 @@ const Dashboard = () => {
           <Header />
         </header>
         <section className="dashboard-content">
-          <EventData trackingData={eventData} />
+          <EventData trackingData={profileData} />
           <Footer />
         </section>
       </div>

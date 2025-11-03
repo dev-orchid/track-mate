@@ -10,7 +10,11 @@ const verifyToken = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded; // attach decoded user info to req
+        // Ensure company_id is present in the token
+        if (!decoded.company_id) {
+            return res.status(403).json({ success: false, message: 'Invalid token: missing company_id.' });
+        }
+        req.user = decoded; // attach decoded user info (userId, email, company_id) to req
         next();
     } catch (err) {
         return res.status(403).json({ success: false, message: 'Invalid or expired token.' });

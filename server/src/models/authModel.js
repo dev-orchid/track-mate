@@ -31,6 +31,14 @@ const AccountSchema = new mongoose.Schema(
       type: String,
       default: null, // initially empty
     },
+    api_key: {
+      type: String,
+      unique: true,
+      index: true,
+    },
+    api_key_created_at: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );

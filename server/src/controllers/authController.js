@@ -4,6 +4,9 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const authAccount = require("../models/authModel");
 const { generateCompanyId } = require("../utils/generateCompanyId");
+const generateApiKey = require("../utils/generateApiKey");
+const sanitizer = require("../utils/sanitizer");
+const logger = require("../utils/logger");
 
 // 1. User Registration
 exports.userRegisteration = async (req, res) => {
@@ -26,6 +29,7 @@ exports.userRegisteration = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     const company_id = generateCompanyId();
+    const api_key = generateApiKey();
 
     const newAccount = new authAccount({
       firstName,
@@ -33,7 +37,9 @@ exports.userRegisteration = async (req, res) => {
       email,
       password: hashedPassword,
       company_name,
-      company_id
+      company_id,
+      api_key,
+      api_key_created_at: new Date()
     });
 
     await newAccount.save();
@@ -42,7 +48,12 @@ exports.userRegisteration = async (req, res) => {
       .status(201)
       .json({ success: true, message: "Account registered successfully" });
   } catch (error) {
-    console.error("Registration error:", error);
+    logger.error("Registration error", {
+      request_id: req.id,
+      email: email,
+      error: error.message,
+      stack: error.stack
+    });
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -73,13 +84,13 @@ exports.authenticateLogin = async (req, res) => {
     }
 
     const accessToken = jwt.sign(
-      { userId: user._id, email: user.email },
+      { userId: user._id, email: user.email, company_id: user.company_id },
       process.env.JWT_SECRET,
       { expiresIn: "59m" }
     );
 
     const refreshToken = jwt.sign(
-      { userId: user._id },
+      { userId: user._id, company_id: user.company_id },
       process.env.REFRESH_TOKEN_SECRET,
       { expiresIn: "1h" }
     );
@@ -89,6 +100,13 @@ exports.authenticateLogin = async (req, res) => {
 
     const { password: _, refreshToken: __, ...safeUser } = user.toObject();
 
+    logger.logAuth('login_success', {
+      request_id: req.id,
+      user_id: user._id,
+      email: user.email,
+      company_id: user.company_id
+    });
+
     return res.status(200).json({
       success: true,
       message: "Login successful",
@@ -97,7 +115,12 @@ exports.authenticateLogin = async (req, res) => {
       user: safeUser
     });
   } catch (error) {
-    console.error("Login error:", error);
+    logger.error("Login error", {
+      request_id: req.id,
+      email: email,
+      error: error.message,
+      stack: error.stack
+    });
     return res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -126,7 +149,11 @@ exports.getCurrentUser = async (req, res) => {
 
     return res.status(200).json({ success: true, user });
   } catch (err) {
-    console.error("getCurrentUser error:", err);
+    logger.error("getCurrentUser error", {
+      request_id: req.id,
+      error: err.message,
+      stack: err.stack
+    });
     return res
       .status(403)
       .json({ success: false, message: "Invalid or expired token" });
@@ -152,13 +179,13 @@ exports.refreshAccessToken = async (req, res) => {
     }
 
     const newAccessToken = jwt.sign(
-      { userId: user._id, email: user.email },
+      { userId: user._id, email: user.email, company_id: user.company_id },
       process.env.JWT_SECRET,
       { expiresIn: "59m" }
     );
 
     const newRefreshToken = jwt.sign(
-      { userId: user._id },
+      { userId: user._id, company_id: user.company_id },
       process.env.REFRESH_TOKEN_SECRET,
       { expiresIn: "1h" }
     );
@@ -166,13 +193,23 @@ exports.refreshAccessToken = async (req, res) => {
     user.refreshToken = newRefreshToken;
     await user.save({ validateBeforeSave: false });
 
+    logger.logAuth('token_refresh_success', {
+      request_id: req.id,
+      user_id: user._id,
+      company_id: user.company_id
+    });
+
     return res.status(200).json({
       success: true,
       accessToken: newAccessToken,
       refreshToken: newRefreshToken
     });
   } catch (err) {
-    console.error("Refresh token error:", err);
+    logger.error("Refresh token error", {
+      request_id: req.id,
+      error: err.message,
+      stack: err.stack
+    });
     return res
       .status(403)
       .json({ success: false, message: "Invalid or expired refresh token" });
@@ -218,9 +255,85 @@ exports.updateCurrentUser = async (req, res) => {
         .status(404)
         .json({ success: false, message: "User not found" });
     }
+    logger.logAuth('user_update_success', {
+      request_id: req.id,
+      user_id: payload.userId,
+      updated_fields: Object.keys(updates)
+    });
+
     res.json({ success: true, user: updatedUser });
   } catch (err) {
-    console.error("Update error:", err);
+    logger.error("Update error", {
+      request_id: req.id,
+      user_id: payload.userId,
+      error: err.message,
+      stack: err.stack
+    });
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// 6. Regenerate API Key
+exports.regenerateApiKey = async (req, res) => {
+  // Verify token and extract userId
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) {
+    return res
+      .status(401)
+      .json({ success: false, message: "No token provided" });
+  }
+
+  const token = authHeader.split(" ")[1];
+  let payload;
+  try {
+    payload = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    return res
+      .status(403)
+      .json({ success: false, message: "Invalid or expired token" });
+  }
+
+  try {
+    // Generate new API key
+    const newApiKey = generateApiKey();
+
+    // Update user's API key
+    const updatedUser = await authAccount.findByIdAndUpdate(
+      payload.userId,
+      {
+        $set: {
+          api_key: newApiKey,
+          api_key_created_at: new Date()
+        }
+      },
+      { new: true, select: "api_key api_key_created_at" }
+    );
+
+    if (!updatedUser) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    logger.logAuth('api_key_regenerated', {
+      request_id: req.id,
+      user_id: payload.userId,
+      company_id: payload.company_id
+    });
+
+    res.json({
+      success: true,
+      message: "API key regenerated successfully",
+      api_key: updatedUser.api_key,
+      api_key_created_at: updatedUser.api_key_created_at
+    });
+  } catch (err) {
+    logger.error("API key regeneration error", {
+      request_id: req.id,
+      user_id: payload.userId,
+      error: err.message,
+      stack: err.stack
+    });
     res.status(500).json({ success: false, message: err.message });
   }
 };

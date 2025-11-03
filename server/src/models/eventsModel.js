@@ -6,6 +6,7 @@ const EventSchema = new mongoose.Schema( {
         ref: "Profile",
         default: null,
     },
+    company_id: { type: String, required: true, index: true },
     sessionId: { type: String, required: true },
     events: [
         {
@@ -25,14 +26,20 @@ const EventSchema = new mongoose.Schema( {
     ],
 } );
 
+// Compound indexes for optimized queries
+EventSchema.index({ sessionId: 1, company_id: 1 }); // For finding events by session
+EventSchema.index({ userId: 1, company_id: 1 }); // For populating profile events
+EventSchema.index({ company_id: 1, 'events.timestamp': -1 }); // For time-based queries
+EventSchema.index({ sessionId: 1, company_id: 1, userId: 1 }); // For webhook session binding
+
 //End
 const Event = mongoose.model( "Event", EventSchema );
 
 //to get Event data from Event Schema
-exports.getAllEvent = async () => {
+exports.getAllEvent = async (company_id) => {
     try
     {
-        return await Event.find( {}, { _id: 0, __v: 0 } ).populate( "userId" );
+        return await Event.find( { company_id }, { _id: 0, __v: 0 } ).populate( "userId" );
     } catch ( err )
     {
         console.error( "Error finding users:", err );
@@ -79,12 +86,13 @@ exports.eventCreation = async ( event ) => {
 
 
 // Update Events User Id after profile creation
-const updateUserEvents = async ( sessionId, userId ) => {
+const updateUserEvents = async ( sessionId, userId, company_id ) => {
     try
     {
         const result = await Event.updateMany(
             {
                 sessionId,
+                company_id,
                 $or: [
                     { userId: null },
                     { userId: { $exists: false } }
@@ -98,3 +106,5 @@ const updateUserEvents = async ( sessionId, userId ) => {
         console.error( "Error updating events:", error );
     }
 };
+
+exports.updateUserEvents = updateUserEvents;

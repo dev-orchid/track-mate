@@ -8,7 +8,8 @@ export function useLogout() {
         // Remove token from cookies and localStorage
         Cookies.remove("authToken");
         localStorage.removeItem("authToken");
-        localStorage.removeItem("refresh_token");        
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("userAccountDetails");
 
         // Optional: clear other user data
         sessionStorage.clear();

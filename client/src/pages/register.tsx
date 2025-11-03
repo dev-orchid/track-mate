@@ -1,172 +1,159 @@
-// client/pages/register.tsx
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
+import axiosInstance from '../utils/axiosInstance';
 
 const Register: React.FC = () => {
 	const router = useRouter();
 	const [form, setForm] = useState({ firstName: '', lastName: '', email: '', company_name: '', password: '' });
 	const [error, setError] = useState('');
-	const [message, setMessage] = useState('');
+	const [success, setSuccess] = useState('');
 	const [loading, setLoading] = useState(false);
 
-	// Handle input field changes
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setForm({ ...form, [e.target.name]: e.target.value });
 	};
 
-	// Handle form submission
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setLoading(true);
 		setError('');
-		setMessage('');
+		setSuccess('');
 
 		try {
-			// Adjust the URL if your Express server is hosted elsewhere.
-			const res = await fetch('http://localhost:8000/register', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify(form),
-			});
+			const res = await axiosInstance.post('/register', form);
 
-			const data = await res.json();
-
-			if (!res.ok) {
-				setError(data.message || 'Registration failed');
-			} else {
-				setMessage(data.message);
-				// Optionally, redirect to a login page after a delay
+			if (res.data.success) {
+				setSuccess('Account created successfully! Redirecting to login...');
 				setTimeout(() => {
 					router.push('/login');
 				}, 2000);
+			} else {
+				setError(res.data.message || 'Registration failed');
+				setLoading(false);
 			}
-		} catch (err) {
+		} catch (err: any) {
 			console.error('Registration error:', err);
-			setError('An unexpected error occurred.');
+			setError(err.response?.data?.message || 'An error occurred. Please try again.');
+			setLoading(false);
 		}
-
-		setLoading(false);
 	};
 
 	return (
+		<div className="auth-wrapper">
+			<div className="auth-banner" />
+			<div className="auth-container">
+				<div className="auth-card">
+					<div className="auth-header">
+						<h1 className="auth-title">Create Account</h1>
+						<p className="auth-subtitle">Start tracking user analytics today</p>
+					</div>
 
-		<>
+					<form onSubmit={handleSubmit} className="auth-form">
+						{error && (
+							<div className="alert-error">
+								{error}
+							</div>
+						)}
 
-			<div className="container">
+						{success && (
+							<div className="alert-success">
+								{success}
+							</div>
+						)}
 
+						<div className="form-row-modern">
+							<div className="form-group-modern">
+								<label htmlFor="firstName">First Name</label>
+								<input
+									type="text"
+									id="firstName"
+									name="firstName"
+									value={form.firstName}
+									onChange={handleChange}
+									placeholder="John"
+									required
+									className="input-modern"
+								/>
+							</div>
 
-				{/* Nested Row within Card Body */}
-				<div className="row justify-content-center">
-
-					<div className="col-lg-7">
-						<div className="card o-hidden border-0 shadow-lg my-5">
-							<div className="card-body p-0">
-								<div className="p-5">
-									<div className="text-center">
-										<h1 className="h4 text-gray-900 mb-4"><b>Create an Account! </b></h1>
-									</div>
-									<form className="user" onSubmit={handleSubmit}>
-										<div className="form-group row">
-											<div className="col-sm-6 mb-3 mb-sm-0">
-												<input
-													type="text"
-													className="form-control form-control-user"
-													id="firstName"
-													name="firstName"
-													value={form.firstName}
-													onChange={handleChange}
-													placeholder="First Name"
-													required
-												/>
-											</div>
-											<div className="col-sm-6">
-												<input
-													type="text"
-													className="form-control form-control-user"
-													id="lastName"
-													name="lastName"
-													value={form.lastName}
-													onChange={handleChange}
-													placeholder="Last Name"
-													required
-												/>
-											</div>
-										</div>
-										<div className="form-group">
-											<input
-												type="email"
-												className="form-control form-control-user"
-												id="email"
-												name="email"
-												value={form.email}
-												onChange={handleChange}
-												placeholder="Email Address"
-												required
-											/>
-										</div>
-										<div className="form-group row">
-											<div className="col-sm-6 mb-3 mb-sm-0">
-												<input
-													type="password"
-													className="form-control form-control-user"
-													id="password"
-													name="password"
-													value={form.password}
-													onChange={handleChange}
-													placeholder="Password"
-													required
-												/>
-											</div>
-											<div className="col-sm-6">
-												<input
-													type="text"
-													className="form-control form-control-user"
-													id="company_name"
-													name="company_name"
-													value={form.company_name}
-													onChange={handleChange}
-													placeholder="Enter your company!"
-													required
-												/>
-											</div>
-										</div>
-										{error && <p style={{ color: 'orange', marginBottom: '1rem' }}>{error}</p>}
-										{message && <p style={{ color: 'green', marginBottom: '1rem' }}>{message}</p>}
-										<button type="submit" className="btn btn-primary btn-user btn-block" disabled={loading} style={{ padding: '0.5rem 1rem' }}>
-											{loading ? 'Registering...' : 'Register'}
-										</button>
-
-										<hr />
-
-										<button type="button" className="btn btn-google btn-user btn-block">
-											<i className="fab fa-google fa-fw"></i> Register with Google
-										</button>
-
-
-									</form>
-									<hr />
-									<div className="text-center">
-										<a className="small" href="/forgot-password">
-											Forgot Password?
-										</a>
-									</div>
-									<div className="text-center">
-										<a className="small" href="/login">
-											Already have an account? Login!
-										</a>
-									</div>
-								</div>
+							<div className="form-group-modern">
+								<label htmlFor="lastName">Last Name</label>
+								<input
+									type="text"
+									id="lastName"
+									name="lastName"
+									value={form.lastName}
+									onChange={handleChange}
+									placeholder="Doe"
+									required
+									className="input-modern"
+								/>
 							</div>
 						</div>
+
+						<div className="form-group-modern">
+							<label htmlFor="email">Email Address</label>
+							<input
+								type="email"
+								id="email"
+								name="email"
+								value={form.email}
+								onChange={handleChange}
+								placeholder="you@example.com"
+								required
+								className="input-modern"
+							/>
+						</div>
+
+						<div className="form-group-modern">
+							<label htmlFor="company_name">Company Name</label>
+							<input
+								type="text"
+								id="company_name"
+								name="company_name"
+								value={form.company_name}
+								onChange={handleChange}
+								placeholder="Your company"
+								required
+								className="input-modern"
+							/>
+						</div>
+
+						<div className="form-group-modern">
+							<label htmlFor="password">Password</label>
+							<input
+								type="password"
+								id="password"
+								name="password"
+								value={form.password}
+								onChange={handleChange}
+								placeholder="Create a strong password"
+								required
+								className="input-modern"
+							/>
+						</div>
+
+						<button
+							type="submit"
+							disabled={loading}
+							className="btn-modern btn-primary-modern"
+						>
+							{loading ? 'Creating Account...' : 'Create Account'}
+						</button>
+					</form>
+
+					<div className="auth-footer">
+						<p>
+							Already have an account?{" "}
+							<Link href="/login" className="auth-link">
+								Sign in
+							</Link>
+						</p>
 					</div>
 				</div>
 			</div>
-
-
-
-		</>
+		</div>
 	);
 };
 

@@ -9,38 +9,42 @@ export default function ProfileDetails() {
   const { id } = router.query as { id?: string };
   const { profile, loading, error } = useProfileDetails(id);
   const [activeTab, setActiveTab] = useState("details");
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
-
-  const toggle = (index: number) => {
-    setActiveIndex(activeIndex === index ? null : index);
-  };
 
   if (!id || loading) {
     return (
       <div className="text-center py-5">
-        <p>Loading profile…</p>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <p className="mt-3">Loading profile…</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-5 text-danger">
-        <p>Error loading profile: {error}</p>
+      <div className="text-center py-5">
+        <div className="alert alert-danger" role="alert">
+          <i className="fas fa-exclamation-triangle me-2"></i>
+          Error loading profile: {error}
+        </div>
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <div className="text-center py-5 text-muted">
-        <p>Profile not found</p>
+      <div className="text-center py-5">
+        <div className="alert alert-warning" role="alert">
+          <i className="fas fa-info-circle me-2"></i>
+          Profile not found
+        </div>
       </div>
     );
   }
 
   // Prepare timeline events from all sessions
-  const allEvents = profile.events.flatMap(session => 
+  const allEvents = profile.events.flatMap(session =>
     session.events.map(event => ({
       ...event,
       sessionId: session.sessionId
@@ -65,449 +69,427 @@ export default function ProfileDetails() {
   const eventTypeCounts: Record<string, number> = {};
   profile.events.forEach(session => {
     session.events.forEach(event => {
-      eventTypeCounts[event.eventType] = 
+      eventTypeCounts[event.eventType] =
         (eventTypeCounts[event.eventType] || 0) + 1;
     });
   });
 
+  // Calculate total revenue
+  const totalRevenue = allEvents.reduce((sum, event) => {
+    const productRevenue = event.eventData?.productInfos?.reduce((prodSum, prod) =>
+      prodSum + (prod.price || 0), 0) || 0;
+    return sum + productRevenue;
+  }, 0);
+
   return (
-    <div>
-      <div id="content-wrapper" className="d-flex flex-column w-100">
-        {/* Main Content */}
-        <div id="content">
-          {/* Begin Page Content */}
-          <div className="container-fluid">
-            {/* Page Heading */}
-            <button
-              className="btn btn-link mb-4"
-              onClick={() => router.back()}
-            >
-              ← All Profiles
-            </button>
-            
-            {/* Development Approach */}
-            <div className="row">
-              <div className="col-lg-9 mb-4">
-                <div className="card shadow mb-4">
-                  <div className="card-body">
-                    <ul className="nav nav-tabs">
-                      <li className="nav-item">
-                        <a
-                          className={`nav-link ${
-                            activeTab === "details" ? "active" : ""
-                          }`}
-                          onClick={() => setActiveTab("details")}
-                         
-                        >
-                          Details
-                        </a>
-                      </li>
-                      <li className="nav-item" onClick={() => toggle(0)}>
-                        <a
-                          className={`nav-link ${
-                            activeTab === "metrics" ? "active" : ""
-                          }`}
-                          onClick={() => setActiveTab("metrics")}
-                         
-                        >
-                          Metrics and Insights
-                        </a>
-                      </li>
-                      <li className="nav-item">
-                        <a
-                          className={`nav-link ${
-                            activeTab === "segments" ? "active" : ""
-                          }`}
-                          onClick={() => setActiveTab("segments")}
-                         
-                        >
-                          List and Segments
-                        </a>
-                      </li>
-                      <li className="nav-item">
-                        <a
-                          className={`nav-link ${
-                            activeTab === "objects" ? "active" : ""
-                          }`}
-                          onClick={() => setActiveTab("objects")}
-                         
-                        >
-                          Objects
-                        </a>
-                      </li>
-                    </ul>
+    <div className="klaviyo-profile-page">
+      <div className="container-fluid">
+        {/* Back Button */}
+        <button className="back-button" onClick={() => router.back()}>
+          <i className="fas fa-arrow-left"></i>
+          Back to All Profiles
+        </button>
 
-                    <div className="tab-content mt-3">
-                      {/* Details Tab */}
-                      <div
-                        className={`tab-pane fade ${
-                          activeTab === "details" ? "show active" : ""
-                        }`}
-                      >
-                        <div className="mb-4">
-                          <h5 className="mb-3">User: {profile.email}</h5>
-                          
-                          {/* Profile Info */}
-                          <div className="row mb-4">
-                            <div className="col-md-6">
-                              <p><strong>Name:</strong> {profile.name}</p>
-                              <p><strong>Email:</strong> {profile.email}</p>
-                            </div>
-                            <div className="col-md-6">
-                              <p><strong>Phone:</strong> {profile.phone}</p>
-                              <p>
-                                <strong>Last Active:</strong>{" "}
-                                {new Date(profile.lastActive).toLocaleString()}
-                              </p>
-                            </div>
-                          </div>
+        {/* Profile Header - Persistent across all tabs */}
+        <div className="profile-header-card">
+          <div className="profile-header-content">
+            <div className="profile-avatar">
+              <i className="fas fa-user"></i>
+            </div>
+            <div className="profile-header-info">
+              <h2 className="profile-name">{profile.name}</h2>
+              <div className="profile-contact-badges">
+                <span className="contact-badge">
+                  <i className="fas fa-envelope"></i>
+                  {profile.email}
+                </span>
+                {profile.phone && (
+                  <span className="contact-badge">
+                    <i className="fas fa-phone"></i>
+                    {profile.phone}
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="profile-header-meta">
+              <div className="meta-item">
+                <span className="meta-label">Last Active</span>
+                <span className="meta-value">{new Date(profile.lastActive).toLocaleString()}</span>
+              </div>
+              <div className="meta-item">
+                <span className="meta-label">Total Events</span>
+                <span className="meta-value">{allEvents.length}</span>
+              </div>
+              <div className="meta-item">
+                <span className="meta-label">Total Revenue</span>
+                <span className="meta-value">₹{totalRevenue.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-                          {profile.events.map((session, si) => (
-                            <div key={si} className="mt-3">
-                              <h6>Session ID: {session.sessionId}</h6>
+        {/* Main Layout: Tabs + Sidebar */}
+        <div className="row">
+          {/* Left Column - Tabs Content */}
+          <div className="col-lg-9">
+            <div className="profile-tabs-card">
+              {/* Tab Navigation */}
+              <ul className="klaviyo-tabs">
+                <li className={activeTab === "details" ? "active" : ""}>
+                  <button onClick={() => setActiveTab("details")}>
+                    <i className="fas fa-info-circle"></i>
+                    Details
+                  </button>
+                </li>
+                <li className={activeTab === "metrics" ? "active" : ""}>
+                  <button onClick={() => setActiveTab("metrics")}>
+                    <i className="fas fa-chart-line"></i>
+                    Metrics and Insights
+                  </button>
+                </li>
+                <li className={activeTab === "segments" ? "active" : ""}>
+                  <button onClick={() => setActiveTab("segments")}>
+                    <i className="fas fa-layer-group"></i>
+                    Lists and Segments
+                  </button>
+                </li>
+                <li className={activeTab === "objects" ? "active" : ""}>
+                  <button onClick={() => setActiveTab("objects")}>
+                    <i className="fas fa-cube"></i>
+                    Objects
+                  </button>
+                </li>
+              </ul>
 
-                              <table className="table50 table border mt-2">
-                                <thead>
-                                  <tr>
-                                    <th>Event Type</th>
-                                    <th>Timestamp</th>
-                                    <th>Address</th>
-                                    <th>Products</th>
-                                  </tr>
-                                </thead>
-
-                                <tbody>
-                                  {session.events.map((ev, ei) => (
-                                    <tr key={ei}>
-                                      <td>{ev.eventType}</td>
-                                      <td>
-                                        {new Date(
-                                          ev.timestamp
-                                        ).toLocaleString()}
-                                      </td>
-                                      <td>
-                                        {ev.eventData?.address || "—"}
-                                      </td>
-                                      <td>
-                                        {ev.eventData?.productInfos
-                                          ?.length > 0 ? (
-                                          <ul className="mb-0 pl-3">
-                                            {ev.eventData.productInfos.map(
-                                              (prod, pi2) => (
-                                                <li key={pi2}>
-                                                  {prod.productName} — ₹
-                                                  {prod.price} (ID:{" "}
-                                                  {prod.productId})
-                                                </li>
-                                              )
-                                            )}
-                                          </ul>
-                                        ) : (
-                                          "—"
-                                        )}
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          ))}
+              {/* Tab Content */}
+              <div className="tab-content-area">
+                {/* Details Tab */}
+                {activeTab === "details" && (
+                  <div className="tab-panel">
+                    <div className="tab-section">
+                      <h3 className="section-title">Profile Information</h3>
+                      <div className="info-grid">
+                        <div className="info-item">
+                          <label>Full Name</label>
+                          <div className="info-value">{profile.name}</div>
                         </div>
-                      </div>
-
-                      {/* Metrics and Insights Tab */}
-                      <div
-                        className={`tab-pane fade ${
-                          activeTab === "metrics" ? "show active" : ""
-                        }`}
-                      >
-                        <div className="accordion" id="accordionExample">
-                       
-                          <div className="card">
-                            <div className="card-header" id="heading0">
-                              <h2 className="mb-0">
-                                <button
-                                  className={`btn btn-link btn-block text-left ${
-                                    activeIndex === 0 ? "" : "collapsed"
-                                  }`}
-                                  onClick={() => toggle(0)}
-                                  aria-expanded={activeIndex === 0}
-                                  aria-controls="collapse0"
-                                >
-                                  Session Summary
-                                </button>
-                              </h2>
-                            </div>
-
-                            <div
-                              id="collapse0"
-                              className={`collapse ${
-                                activeIndex === 0 ? "show" : ""
-                              }`}
-                              aria-labelledby="heading0"
-                              data-parent="#accordionExample"
-                            >
-                              <div className="card-body">
-                                <div className="table-responsive">
-                                  <table className="table table-bordered">
-                                    <thead className="thead-light">
-                                      <tr>
-                                        <th>Total Sessions</th>
-                                        <th>Total Events</th>
-                                        <th>First Session</th>
-                                        <th>Last Session</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      <tr>
-                                        <td>{profile.events.length}</td>
-                                        <td>{profile.events.reduce((total, session) => total + session.events.length, 0)}</td>
-                                        <td>
-                                          {profile.events.length > 0
-                                            ? new Date(
-                                                profile.events[profile.events.length - 1]
-                                                  .events[0]?.timestamp
-                                              ).toLocaleDateString()
-                                            : "N/A"}
-                                        </td>
-                                        <td>
-                                          {profile.events.length > 0
-                                            ? new Date(
-                                                profile.events[0].events[0]?.timestamp
-                                              ).toLocaleDateString()
-                                            : "N/A"}
-                                        </td>
-                                      </tr>
-                                    </tbody>
-                                  </table>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Event Types */}
-                          <div className="card">
-                            <div className="card-header" id="heading1">
-                              <h2 className="mb-0">
-                                <button
-                                  className={`btn btn-link btn-block text-left ${
-                                    activeIndex === 1 ? "" : "collapsed"
-                                  }`}
-                                  onClick={() => toggle(1)}
-                                  aria-expanded={activeIndex === 1}
-                                  aria-controls="collapse1"
-                                >
-                                  Event Types
-                                </button>
-                              </h2>
-                            </div>
-
-                            <div
-                              id="collapse1"
-                              className={`collapse ${
-                                activeIndex === 1 ? "show" : ""
-                              }`}
-                              aria-labelledby="heading1"
-                              data-parent="#accordionExample"
-                            >
-                              <div className="card-body">
-                                <div className="">
-                                  <ul className="list-group">
-                                    {Object.entries(eventTypeCounts).map(([eventType, count], index) => (
-                                      <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                                        <div>
-                                          <strong>{eventType}</strong>
-                                        </div>
-                                        <span className="badge badge-primary badge-pill">
-                                          {count}
-                                        </span>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Product Interactions */}
-                          <div className="card">
-                            <div className="card-header" id="heading2">
-                              <h2 className="mb-0">
-                                <button
-                                  className={`btn btn-link btn-block text-left ${
-                                    activeIndex === 2 ? "" : "collapsed"
-                                  }`}
-                                  onClick={() => toggle(2)}
-                                  aria-expanded={activeIndex === 2}
-                                  aria-controls="collapse2"
-                                >
-                                  Product Interactions
-                                </button>
-                              </h2>
-                            </div>
-
-                            <div
-                              id="collapse2"
-                              className={`collapse ${
-                                activeIndex === 2 ? "show" : ""
-                              }`}
-                              aria-labelledby="heading2"
-                              data-parent="#accordionExample"
-                            >
-                              <div className="card-body">
-                                {allProducts.length > 0 ? (
-                                  <table className="table table-bordered">
-                                    <thead>
-                                      <tr>
-                                        <th>Product Name</th>
-                                        <th>Product ID</th>
-                                        <th>Price</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {allProducts.map((product, index) => (
-                                        <tr key={index}>
-                                          <td>{product.productName}</td>
-                                          <td>{product.productId}</td>
-                                          <td>₹{product.price}</td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                ) : (
-                                  <p>No product interactions found.</p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
+                        <div className="info-item">
+                          <label>Email Address</label>
+                          <div className="info-value">{profile.email}</div>
                         </div>
-                      </div>
-
-                      {/* List and Segments Tab */}
-                      <div
-                        className={`tab-pane fade ${
-                          activeTab === "segments" ? "show active" : ""
-                        }`}
-                      >
-                        <div className="activity-log-container">
-                          <div className="timeline">
-                            {allEvents.map((event, index) => (
-                              <div key={index} className="timeline-item">
-                                <div className={`timeline-dot ${
-                                  event.eventType === 'Purchase' ? 'success' : 
-                                  event.eventType === 'Cart Update' ? 'info' :
-                                  event.eventType === 'add_to_cart' ? 'warning' : 'gray'
-                                }`}></div>
-                                <div className="timeline-content">
-                                  <h6>{event.eventType}</h6>
-                                  <p>Session: {event.sessionId}</p>
-                                  {event.eventData?.address && (
-                                    <p>Location: {event.eventData.address}</p>
-                                  )}
-                                  <span className="timestamp">
-                                    {new Date(event.timestamp).toLocaleString()}
-                                  </span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
+                        <div className="info-item">
+                          <label>Phone Number</label>
+                          <div className="info-value">{profile.phone || 'Not provided'}</div>
                         </div>
-                      </div>
-
-                      {/* Objects Tab */}
-                      <div
-                        className={`tab-pane fade ${
-                          activeTab === "objects" ? "show active" : ""
-                        }`}
-                      >
-                        <h4>Products Viewed</h4>
-                        {allProducts.length > 0 ? (
-                          <div className="row">
-                            {allProducts.map((product, index) => (
-                              <div key={index} className="col-md-4 mb-3">
-                                <div className="card">
-                                  <div className="card-body">
-                                    <h5 className="card-title">{product.productName}</h5>
-                                    <p className="card-text">
-                                      Product ID: {product.productId}
-                                      <br />
-                                      Price: ₹{product.price}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p>No products found.</p>
-                        )}
+                        <div className="info-item">
+                          <label>Last Active</label>
+                          <div className="info-value">{new Date(profile.lastActive).toLocaleString()}</div>
+                        </div>
+                        <div className="info-item">
+                          <label>Profile ID</label>
+                          <div className="info-value">{profile._id}</div>
+                        </div>
+                        <div className="info-item">
+                          <label>Company ID</label>
+                          <div className="info-value">{profile.company_id}</div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              </div>
 
-              {/* Activity Log Sidebar */}
-              <div className="col-lg-3 mb-4">
-                <div className="card shadow mb-4">
-                  <div className="card-header py-3">
-                    <h6 className="m-0 font-weight-bold text-primary">
-                      Activity Log
-                    </h6>
-                  </div>
-                  <div className="card-body">
-                    <div className="activity-log-container">
-                      <div className="timeline">
-                        {allEvents.slice(0, 5).map((event, index) => (
-                          <div key={index} className="timeline-item">
-                            <div className={`timeline-dot ${
-                              event.eventType === 'purchase' ? 'success' : 
-                              event.eventType === 'view' ? 'info' :
-                              event.eventType === 'add_to_cart' ? 'warning' : 'gray'
-                            }`}></div>
-                            <div className="timeline-content">
-                              <h6>{event.eventType}</h6>
-                              <span className="timestamp">
-                                {new Date(event.timestamp).toLocaleString()}
-                              </span>
+                    <div className="tab-section">
+                      <h3 className="section-title">Recent Activity</h3>
+                      <div className="activity-list">
+                        {allEvents.slice(0, 10).map((event, index) => (
+                          <div key={index} className="activity-item">
+                            <div className="activity-icon">
+                              <i className={`fas ${
+                                event.eventType === 'page_view' ? 'fa-eye' :
+                                event.eventType === 'add_to_cart' ? 'fa-shopping-cart' :
+                                event.eventType === 'purchase' ? 'fa-credit-card' :
+                                event.eventType === 'button_click' ? 'fa-mouse-pointer' :
+                                'fa-circle'
+                              }`}></i>
+                            </div>
+                            <div className="activity-content">
+                              <div className="activity-header">
+                                <span className="activity-type">{event.eventType}</span>
+                                <span className="activity-time">{new Date(event.timestamp).toLocaleString()}</span>
+                              </div>
+                              <div className="activity-description">
+                                {event.eventData?.address && (
+                                  <span className="activity-url">
+                                    <i className="fas fa-link"></i>
+                                    {event.eventData.address}
+                                  </span>
+                                )}
+                              </div>
+                              {event.eventData?.productInfos && event.eventData.productInfos.length > 0 && (
+                                <div className="activity-products">
+                                  <i className="fas fa-box"></i>
+                                  {event.eventData.productInfos.length} product(s)
+                                </div>
+                              )}
                             </div>
                           </div>
                         ))}
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
 
-                {/* Profile Summary Card */}
-                <div className="card shadow mb-4">
-                  <div className="card-header py-3">
-                    <h6 className="m-0 font-weight-bold text-primary">
-                      Profile Summary
-                    </h6>
+                {/* Metrics and Insights Tab */}
+                {activeTab === "metrics" && (
+                  <div className="tab-panel">
+                    <div className="metrics-grid">
+                      <div className="metric-card">
+                        <div className="metric-icon">
+                          <i className="fas fa-mouse-pointer"></i>
+                        </div>
+                        <div className="metric-content">
+                          <div className="metric-label">Total Sessions</div>
+                          <div className="metric-value">{profile.events.length}</div>
+                        </div>
+                      </div>
+                      <div className="metric-card">
+                        <div className="metric-icon">
+                          <i className="fas fa-chart-bar"></i>
+                        </div>
+                        <div className="metric-content">
+                          <div className="metric-label">Total Events</div>
+                          <div className="metric-value">{allEvents.length}</div>
+                        </div>
+                      </div>
+                      <div className="metric-card">
+                        <div className="metric-icon">
+                          <i className="fas fa-dollar-sign"></i>
+                        </div>
+                        <div className="metric-content">
+                          <div className="metric-label">Total Revenue</div>
+                          <div className="metric-value">₹{totalRevenue.toFixed(2)}</div>
+                        </div>
+                      </div>
+                      <div className="metric-card">
+                        <div className="metric-icon">
+                          <i className="fas fa-shopping-bag"></i>
+                        </div>
+                        <div className="metric-content">
+                          <div className="metric-label">Products Viewed</div>
+                          <div className="metric-value">{allProducts.length}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="tab-section">
+                      <h3 className="section-title">Event Breakdown</h3>
+                      <div className="event-breakdown-list">
+                        {Object.entries(eventTypeCounts).map(([eventType, count], index) => (
+                          <div key={index} className="breakdown-item">
+                            <div className="breakdown-label">
+                              <i className="fas fa-circle"></i>
+                              {eventType}
+                            </div>
+                            <div className="breakdown-value">{count} events</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="tab-section">
+                      <h3 className="section-title">Product Interactions</h3>
+                      {allProducts.length > 0 ? (
+                        <div className="products-table-container">
+                          <table className="modern-table">
+                            <thead>
+                              <tr>
+                                <th>Product Name</th>
+                                <th>Product ID</th>
+                                <th>Price</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {allProducts.map((product, index) => (
+                                <tr key={index}>
+                                  <td>
+                                    <div className="product-name">
+                                      <i className="fas fa-box"></i>
+                                      {product.productName}
+                                    </div>
+                                  </td>
+                                  <td><code>{product.productId}</code></td>
+                                  <td><strong>₹{product.price}</strong></td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <div className="empty-state">
+                          <i className="fas fa-inbox"></i>
+                          <p>No product interactions found</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="card-body">
-                    <p><strong>Name:</strong> {profile.name}</p>
-                    <p><strong>Email:</strong> {profile.email}</p>
-                    <p><strong>Phone:</strong> {profile.phone}</p>
-                    <p>
-                      <strong>Last Active:</strong><br />
-                      {new Date(profile.lastActive).toLocaleString()}
-                    </p>
-                    <p>
-                      <strong>Total Sessions:</strong> {profile.events.length}
-                    </p>
-                    <p>
-                      <strong>Total Events:</strong>{" "}
-                      {profile.events.reduce((total, session) => total + session.events.length, 0)}
-                    </p>
+                )}
+
+                {/* Lists and Segments Tab */}
+                {activeTab === "segments" && (
+                  <div className="tab-panel">
+                    <div className="tab-section">
+                      <h3 className="section-title">Activity Timeline</h3>
+                      <div className="timeline-container">
+                        {allEvents.map((event, index) => (
+                          <div key={index} className="timeline-event">
+                            <div className={`timeline-marker ${
+                              event.eventType === 'purchase' ? 'success' :
+                              event.eventType === 'add_to_cart' ? 'warning' :
+                              event.eventType === 'page_view' ? 'info' : 'default'
+                            }`}>
+                              <i className={`fas ${
+                                event.eventType === 'purchase' ? 'fa-check' :
+                                event.eventType === 'add_to_cart' ? 'fa-shopping-cart' :
+                                event.eventType === 'page_view' ? 'fa-eye' :
+                                event.eventType === 'button_click' ? 'fa-mouse-pointer' : 'fa-circle'
+                              }`}></i>
+                            </div>
+                            <div className="timeline-event-content">
+                              <div className="timeline-event-header">
+                                <span className="timeline-event-type">{event.eventType}</span>
+                                <span className="timeline-event-time">
+                                  {new Date(event.timestamp).toLocaleString()}
+                                </span>
+                              </div>
+                              {event.eventData?.address && (
+                                <div className="timeline-event-url">
+                                  <i className="fas fa-link"></i>
+                                  {event.eventData.address}
+                                </div>
+                              )}
+                              {event.eventData?.productInfos && event.eventData.productInfos.length > 0 && (
+                                <div className="timeline-event-products">
+                                  <strong>Products:</strong>
+                                  <ul>
+                                    {event.eventData.productInfos.map((prod, pi) => (
+                                      <li key={pi}>
+                                        {prod.productName} — ₹{prod.price}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              <div className="timeline-event-meta">
+                                <span className="session-badge">
+                                  <i className="fas fa-fingerprint"></i>
+                                  Session: {event.sessionId.substring(0, 12)}...
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Objects Tab */}
+                {activeTab === "objects" && (
+                  <div className="tab-panel">
+                    <div className="tab-section">
+                      <h3 className="section-title">Products Viewed</h3>
+                      {allProducts.length > 0 ? (
+                        <div className="products-grid">
+                          {allProducts.map((product, index) => (
+                            <div key={index} className="product-card-modern">
+                              <div className="product-card-icon">
+                                <i className="fas fa-box"></i>
+                              </div>
+                              <div className="product-card-content">
+                                <h4>{product.productName}</h4>
+                                <div className="product-meta">
+                                  <span className="product-id">
+                                    <i className="fas fa-barcode"></i>
+                                    ID: {product.productId}
+                                  </span>
+                                  <span className="product-price">
+                                    <i className="fas fa-tag"></i>
+                                    ₹{product.price}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="empty-state">
+                          <i className="fas fa-inbox"></i>
+                          <p>No products found</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Sidebar - Activity Log (persistent) */}
+          <div className="col-lg-3">
+            <div className="sidebar-sticky">
+              <div className="activity-sidebar-card">
+                <div className="sidebar-header">
+                  <h4>
+                    <i className="fas fa-stream"></i>
+                    Activity Feed
+                  </h4>
+                </div>
+                <div className="sidebar-activity-list">
+                  {allEvents.slice(0, 15).map((event, index) => (
+                    <div key={index} className="sidebar-activity-item">
+                      <div className={`sidebar-activity-dot ${
+                        event.eventType === 'purchase' ? 'success' :
+                        event.eventType === 'add_to_cart' ? 'warning' :
+                        event.eventType === 'page_view' ? 'info' : 'default'
+                      }`}></div>
+                      <div className="sidebar-activity-content">
+                        <div className="sidebar-activity-type">{event.eventType}</div>
+                        <div className="sidebar-activity-time">
+                          {new Date(event.timestamp).toLocaleTimeString()}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="quick-stats-card">
+                <div className="sidebar-header">
+                  <h4>
+                    <i className="fas fa-chart-pie"></i>
+                    Quick Stats
+                  </h4>
+                </div>
+                <div className="quick-stats-list">
+                  <div className="quick-stat-item">
+                    <span className="stat-label">Sessions</span>
+                    <span className="stat-value">{profile.events.length}</span>
+                  </div>
+                  <div className="quick-stat-item">
+                    <span className="stat-label">Events</span>
+                    <span className="stat-value">{allEvents.length}</span>
+                  </div>
+                  <div className="quick-stat-item">
+                    <span className="stat-label">Revenue</span>
+                    <span className="stat-value">₹{totalRevenue.toFixed(2)}</span>
+                  </div>
+                  <div className="quick-stat-item">
+                    <span className="stat-label">Products</span>
+                    <span className="stat-value">{allProducts.length}</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          {/* /.container-fluid */}
         </div>
-        {/* End of Main Content */}
       </div>
     </div>
   );
