@@ -31,6 +31,7 @@ export interface ProfileDetail {
   name: string;
   email: string;
   phone: number;
+  company_id: string;
   lastActive: string;
   events: SessionWithEvents[];
 }

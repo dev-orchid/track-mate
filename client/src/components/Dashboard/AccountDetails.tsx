@@ -1,8 +1,13 @@
 // src/components/Dashboard/AccountDetails.tsx
-import React, { useState, useEffect, FormEvent } from "react";
+import React, { useState, useEffect, FormEvent, ChangeEvent } from "react";
 import useAccountUpdate from "../../hooks/useAccountUpdate";
+import { AccountDetail } from "../../hooks/useAccountDetails";
 
-export default function ProfileDetails({ account }) {
+interface ProfileDetailsProps {
+  account: AccountDetail | null;
+}
+
+export default function ProfileDetails({ account }: ProfileDetailsProps) {
   const {
     updateAccount,
     loading: updating,
@@ -27,12 +32,12 @@ export default function ProfileDetails({ account }) {
     }
   }, [account]);
 
-  function handleChange(e) {
+  function handleChange(e: ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     try {
       await updateAccount(form);

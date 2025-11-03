@@ -2,9 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import { getEventData as fetchEventData } from "./requests";
 
 function useEvents() {
-    const [events, setEvents] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const [events, setEvents] = useState<any[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
 
     const loadEvents = useCallback(async () => {
         try {
@@ -12,7 +12,8 @@ function useEvents() {
             const eventData = await fetchEventData();
             setEvents(eventData.data.flat());
         } catch (err) {
-            setError(err);
+            const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+            setError(errorMessage);
             console.error("Error fetching events:", err);
         } finally {
             setLoading(false);
