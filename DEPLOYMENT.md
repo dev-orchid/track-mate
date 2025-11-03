@@ -31,6 +31,18 @@ TrackMate uses a monorepo structure:
 
 This option deploys only the Next.js client to Vercel. You'll need to host the server elsewhere (Railway, Render, DigitalOcean, etc.) or keep it running locally.
 
+#### Critical Setup Requirements ⚠️
+
+**MUST DO** or deployment will fail:
+
+1. **Set Root Directory to `client`** in Vercel dashboard
+   - Without this, you'll get "No Next.js version detected" error
+   - This tells Vercel your app is in the client subfolder
+
+2. **Add environment variables via Vercel UI only**
+   - Never add them in vercel.json files
+   - Add during project setup or in Settings → Environment Variables
+
 #### Steps:
 
 1. **Push your code to GitHub/GitLab/Bitbucket**
@@ -46,11 +58,14 @@ This option deploys only the Next.js client to Vercel. You'll need to host the s
    - Click "Import"
 
 3. **Configure Build Settings**
-   - **Framework Preset**: Next.js
-   - **Root Directory**: Leave as default (Vercel will detect client directory from vercel.json)
-   - **Build Command**: `npm run build` (or leave default)
-   - **Output Directory**: `client/.next` (should be auto-detected)
-   - **Install Command**: `npm run install` (or leave default)
+
+   **IMPORTANT**: You must set the Root Directory!
+
+   - **Framework Preset**: Next.js (auto-detected)
+   - **Root Directory**: `client` ⚠️ **MUST SET THIS!**
+   - **Build Command**: Leave as default (`npm run build`)
+   - **Output Directory**: Leave as default
+   - **Install Command**: Leave as default (`npm install`)
 
 4. **Add Environment Variables**
 
@@ -273,6 +288,14 @@ Configure branch settings in: Project Settings → Git → Production Branch
 ## Troubleshooting
 
 ### Deployment Configuration
+
+**Error**: `No Next.js version detected` or `Could not identify Next.js version`
+- **Cause**: Root Directory is not set to `client` in Vercel settings
+- **Solution**:
+  1. During project import, click "Edit" next to Root Directory
+  2. Type `client` and save
+  3. Vercel will now detect Next.js in the client subdirectory
+- **Note**: This is required for monorepo structures
 
 **Error**: `Environment Variable "MONGODB_URI" references Secret "mongodb-uri", which does not exist`
 - **Cause**: This happens if you have environment variable references in vercel.json

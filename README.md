@@ -63,11 +63,14 @@ See [VERCEL_QUICKSTART.md](./VERCEL_QUICKSTART.md)
 **Full Documentation**:
 See [DEPLOYMENT.md](./DEPLOYMENT.md)
 
-### One-Click Deploy
+### Step-by-Step Deploy
 
 1. Click "Deploy with Vercel" button above
-2. Add environment variables in Vercel dashboard
-3. Deploy!
+2. **Set Root Directory to `client`** ⚠️ (Required!)
+3. Add environment variable `NEXT_PUBLIC_API_URL`
+4. Deploy!
+
+**Important**: You MUST set the Root Directory to `client` or deployment will fail.
 
 ## Project Structure
 

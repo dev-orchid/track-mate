@@ -63,10 +63,14 @@ TrackMate is configured for easy deployment to Vercel with the following setup:
 - See [VERCEL_QUICKSTART.md](./VERCEL_QUICKSTART.md) for 10-minute deployment guide
 - See [DEPLOYMENT.md](./DEPLOYMENT.md) for comprehensive deployment documentation
 
+**Critical Setup (MUST DO):**
+1. **Set Root Directory to `client`** in Vercel dashboard - Required for monorepo structure
+2. **Add environment variables via Vercel UI** - Never in vercel.json files
+
 **Deployment Structure:**
-- Root `vercel.json` configures Next.js client deployment
-- `server/vercel.json` configures Express API as serverless functions
-- `server/api/index.js` is the serverless-compatible Express handler
+- Root `vercel.json` - Minimal configuration file
+- `server/vercel.json` - Configures Express API as serverless functions
+- `server/api/index.js` - Serverless-compatible Express handler
 
 **Required Environment Variables:**
 

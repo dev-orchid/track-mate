@@ -2,6 +2,12 @@
 
 Deploy TrackMate to Vercel in 10 minutes.
 
+## ⚠️ Critical: Set Root Directory to `client`
+
+**If you skip this step, deployment WILL fail!**
+
+When importing your project, you MUST set the Root Directory to `client`. This tells Vercel your Next.js app is in a subdirectory.
+
 ## Quick Deploy - Client Only
 
 This is the fastest way to get started. Deploy the client to Vercel, use your existing backend.
@@ -24,10 +30,16 @@ git push origin main
 
 ### 3. Configure Project
 
-Vercel will auto-detect settings from `vercel.json`. Just add one environment variable:
+**IMPORTANT - Set Root Directory First!**
 
-**Add Environment Variable:**
-1. Click "Environment Variables" during setup
+Before anything else, configure:
+1. **Root Directory**: Type `client` and click "Edit"
+   - This tells Vercel your Next.js app is in the client folder
+2. Vercel will auto-detect Framework as "Next.js" ✓
+3. Leave Build Command and Install Command as defaults
+
+**Then Add Environment Variable:**
+1. Scroll to "Environment Variables" section
 2. Add this variable:
    - Key: `NEXT_PUBLIC_API_URL`
    - Value: Your backend URL (e.g., `https://your-api.railway.app` or `https://your-server.vercel.app`)
@@ -45,8 +57,11 @@ Deploy both client and server to Vercel.
 
 ### 1. Deploy Client (Main Project)
 
-Follow steps 1-4 above, but use:
-- `NEXT_PUBLIC_API_URL`: `https://your-project-server.vercel.app` (you'll update this after deploying server)
+Follow steps 1-3 above:
+1. Import repository
+2. Set **Root Directory** to `client`
+3. Add environment variable `NEXT_PUBLIC_API_URL` (you can use a placeholder like `https://placeholder.vercel.app` - you'll update this after deploying server)
+4. Deploy
 
 ### 2. Deploy Server (Separate Project)
 
