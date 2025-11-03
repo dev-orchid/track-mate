@@ -2600,3 +2600,9 @@
 {"duration":"30007ms","level":"info","message":"API Response","method":"GET","requestId":"04807c53-8b4e-43d8-aaa9-176f90959e01","service":"trackmate-api","statusCode":200,"timestamp":"2025-10-25 21:28:35","url":"/api/notifications/new-profiles?since=2025-10-18T15:35:23.560Z"}
 {"level":"info","message":"::1 - - [25/Oct/2025:15:58:35 +0000] \"GET /api/notifications/new-profiles?since=2025-10-18T15:35:23.560Z HTTP/1.1\" 200 40 \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36\"","service":"trackmate-api","timestamp":"2025-10-25 21:28:35"}
 {"company_id":"TM-YXL25","count":0,"level":"info","message":"Database Operation","operation":"get_new_profiles","request_id":"f3540b10-2d33-497c-93a7-77df58373154","service":"trackmate-api","since":"2025-10-18T15:35:23.560Z","timestamp":"2025-10-25 21:28:37"}
+{"level":"info","message":"Database connected successfully","service":"trackmate-api","timestamp":"2025-11-03 14:30:56"}
+{"level":"info","message":"Backend server running on port 8000","port":"8000","service":"trackmate-api","timestamp":"2025-11-03 14:30:56"}
+{"level":"info","message":"Database connected successfully","service":"trackmate-api","timestamp":"2025-11-03 14:31:50"}
+{"level":"info","message":"Backend server running on port 8000","port":"8000","service":"trackmate-api","timestamp":"2025-11-03 14:31:50"}
+{"level":"info","message":"Database connected successfully","service":"trackmate-api","timestamp":"2025-11-03 14:32:03"}
+{"level":"info","message":"Backend server running on port 8000","port":"8000","service":"trackmate-api","timestamp":"2025-11-03 14:32:03"}

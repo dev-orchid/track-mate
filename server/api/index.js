@@ -28,8 +28,28 @@ app.use(addRequestId);
 app.use(express.json());
 
 // CORS configuration - allow requests from dashboard and tracking snippets
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:8080',
+  'https://track-mate-pi.vercel.app',
+  'null'
+];
+
+// If CORS_ORIGIN env var is set, add it
+if (process.env.CORS_ORIGIN) {
+  allowedOrigins.push(process.env.CORS_ORIGIN);
+}
+
 app.use(cors({
-  origin: true, // Allow all origins in serverless environment - configure in Vercel
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1 || /\.vercel\.app$/.test(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 
