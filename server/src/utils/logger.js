@@ -2,6 +2,13 @@
 const winston = require('winston');
 const path = require('path');
 
+// Check if we're in serverless environment
+const isServerless = !!(
+  process.env.VERCEL ||
+  process.env.AWS_LAMBDA_FUNCTION_NAME ||
+  process.env.FUNCTION_NAME
+);
+
 // Define log format
 const logFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
@@ -10,30 +17,36 @@ const logFormat = winston.format.combine(
   winston.format.json()
 );
 
-// Create logger instance
-const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info',
-  format: logFormat,
-  defaultMeta: { service: 'trackmate-api' },
-  transports: [
-    // Write all logs to combined.log
+// Create transports array
+const transports = [];
+
+// Only add file transports if NOT in serverless environment
+if (!isServerless) {
+  transports.push(
     new winston.transports.File({
       filename: path.join(__dirname, '../../logs/combined.log'),
       maxsize: 5242880, // 5MB
       maxFiles: 5,
     }),
-    // Write error logs to error.log
     new winston.transports.File({
       filename: path.join(__dirname, '../../logs/error.log'),
       level: 'error',
       maxsize: 5242880, // 5MB
       maxFiles: 5,
     })
-  ]
+  );
+}
+
+// Create logger instance
+const logger = winston.createLogger({
+  level: process.env.LOG_LEVEL || 'info',
+  format: logFormat,
+  defaultMeta: { service: 'trackmate-api' },
+  transports: transports
 });
 
-// If not in production, log to console as well
-if (process.env.NODE_ENV !== 'production') {
+// Always add console in serverless, or in non-production environments
+if (isServerless || process.env.NODE_ENV !== 'production') {
   logger.add(new winston.transports.Console({
     format: winston.format.combine(
       winston.format.colorize(),
