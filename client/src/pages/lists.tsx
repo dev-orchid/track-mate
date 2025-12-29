@@ -5,10 +5,15 @@ import Footer from '../components/Layout/Footer';
 import type { NextPage } from 'next';
 import { useLists, createList, updateList, deleteList, addTagsToList, removeTagsFromList, refreshListCount } from '../hooks/useLists';
 import { useTags } from '../hooks/useTags';
+import { useAccountDetails } from '../hooks/useAccountDetails';
+
+// API URL for tracking snippet
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://track-mate-server.vercel.app';
 
 const Lists: NextPage = () => {
   const { lists, loading, error, refetch } = useLists(100);
   const { tags } = useTags(100);
+  const { account } = useAccountDetails();
   const [showModal, setShowModal] = useState(false);
   const [showSnippetModal, setShowSnippetModal] = useState(false);
   const [selectedList, setSelectedList] = useState<any>(null);
@@ -104,24 +109,24 @@ const Lists: NextPage = () => {
   const copySnippet = () => {
     if (!selectedList) return;
 
+    const companyId = account?.company_id || 'YOUR_COMPANY_ID';
     const snippet = `<!-- TrackMate Tracking Snippet for List: ${selectedList.name} -->
-<script src="https://yourdomain.com/trackmate.js"></script>
+<script src="${API_URL}/tm.js"></script>
 <script>
   // Initialize TrackMate with your company ID and list ID
-  TrackMate.init('YOUR_COMPANY_ID', 'YOUR_API_URL', {
-    listId: '${selectedList.list_id}'
-  });
+  TM.init('${companyId}', '${selectedList.list_id}');
 
-  // Example: Identify user when they submit a form
-  document.getElementById('signup-form').addEventListener('submit', function(e) {
-    e.preventDefault();
+  // TrackMate automatically tracks page views
+  // Call TM.identify() when user submits a form:
 
-    TrackMate.identify({
-      name: document.getElementById('name').value,
-      email: document.getElementById('email').value,
-      phone: document.getElementById('phone').value
-    });
-  });
+  // Example:
+  // document.getElementById('your-form').addEventListener('submit', function(e) {
+  //   TM.identify({
+  //     name: document.getElementById('name').value,
+  //     email: document.getElementById('email').value,
+  //     phone: document.getElementById('phone').value
+  //   });
+  // });
 </script>`;
 
     navigator.clipboard.writeText(snippet);
@@ -463,25 +468,24 @@ const Lists: NextPage = () => {
                   fontFamily: 'Courier New, monospace'
                 }}>
 {`<!-- TrackMate Tracking Snippet for List: ${selectedList.name} -->
-<script src="https://yourdomain.com/trackmate.js"></script>
+<script src="${API_URL}/tm.js"></script>
 <script>
-  // Initialize TrackMate with list ID
-  TrackMate.init('YOUR_COMPANY_ID', 'YOUR_API_URL', {
-    listId: '${selectedList.list_id}'
-  });
+  // Initialize TrackMate with your company ID and list ID
+  TM.init('${account?.company_id || 'YOUR_COMPANY_ID'}', '${selectedList.list_id}');
 
-  // Example: Track user signup
-  document.getElementById('signup-form').addEventListener('submit', function(e) {
-    e.preventDefault();
+  // TrackMate automatically tracks page views
+  // Call TM.identify() when user submits a form:
 
-    TrackMate.identify({
-      name: document.getElementById('name').value,
-      email: document.getElementById('email').value,
-      phone: document.getElementById('phone').value
-    });
+  // Example:
+  // document.getElementById('your-form').addEventListener('submit', function(e) {
+  //   TM.identify({
+  //     name: document.getElementById('name').value,
+  //     email: document.getElementById('email').value,
+  //     phone: document.getElementById('phone').value
+  //   });
+  // });
 
-    // Profile will be auto-assigned tags: ${selectedList.tags?.map((t: any) => t.name).join(', ')}
-  });
+  // Profile will be auto-assigned tags: ${selectedList.tags?.map((t: any) => t.name).join(', ')}
 </script>`}
                 </pre>
               </div>
@@ -499,7 +503,7 @@ const Lists: NextPage = () => {
                     <path d="M12 16V12M12 8H12.01" stroke="#856404" strokeWidth="2" strokeLinecap="round"/>
                   </svg>
                   <div style={{ fontSize: '13px', color: '#856404' }}>
-                    <strong>Note:</strong> Replace <code>YOUR_COMPANY_ID</code> and <code>YOUR_API_URL</code> with your actual TrackMate credentials. When users submit the form, they'll automatically be assigned all tags from this list.
+                    <strong>Ready to use!</strong> Copy this snippet and paste it into your website's HTML. When users submit a form with <code>TM.identify()</code>, they'll automatically be assigned all tags from this list.
                   </div>
                 </div>
               </div>
