@@ -195,13 +195,17 @@ exports.profileCreation = async (data) => {
 
         // If list_id is provided and this is a new profile, auto-assign list tags
         if (isNewProfile && data.list_id) {
+            console.log(`[AUTO-TAG] New profile ${profile.id} has list_id: ${data.list_id}, attempting auto-tag...`);
             try {
                 const listModel = require('./listModel');
                 const list = await listModel.getListByListId(data.list_id, data.company_id);
+                console.log(`[AUTO-TAG] List lookup result:`, list ? `Found list with ${list.tags?.length || 0} tags` : 'List not found');
 
                 if (list && list.tags && list.tags.length > 0) {
                     const profileTagModel = require('./profileTagModel');
+                    const tagModel = require('./tagModel');
                     const tagIds = list.tags.map(tag => tag._id || tag.id || tag);
+                    console.log(`[AUTO-TAG] Tag IDs to assign:`, tagIds);
 
                     for (const tagId of tagIds) {
                         try {
@@ -212,15 +216,28 @@ exports.profileCreation = async (data) => {
                                 'form',
                                 { source_list: data.list_id }
                             );
+                            console.log(`[AUTO-TAG] Successfully added tag ${tagId} to profile ${profile.id}`);
+
+                            // Update the tag's profile_count
+                            const count = await profileTagModel.countProfilesWithTag(tagId, data.company_id);
+                            await tagModel.updateTag(tagId, data.company_id, { profile_count: count });
+                            console.log(`[AUTO-TAG] Updated tag ${tagId} profile_count to ${count}`);
                         } catch (tagErr) {
-                            console.log(`Tag ${tagId} already assigned to profile ${profile.id}`);
+                            console.log(`[AUTO-TAG] Tag ${tagId} assignment error: ${tagErr.message}`);
                         }
                     }
-                    console.log(`Auto-assigned ${tagIds.length} tags from list ${data.list_id} to profile ${profile.id}`);
+
+                    // Update list profile count as well
+                    await listModel.updateListProfileCount(list._id || list.id);
+                    console.log(`[AUTO-TAG] Auto-assigned ${tagIds.length} tags from list ${data.list_id} to profile ${profile.id}`);
+                } else {
+                    console.log(`[AUTO-TAG] No tags found for list ${data.list_id}`);
                 }
             } catch (listErr) {
-                console.error('Error auto-assigning list tags:', listErr);
+                console.error('[AUTO-TAG] Error auto-assigning list tags:', listErr.message, listErr.stack);
             }
+        } else {
+            console.log(`[AUTO-TAG] Skipped: isNewProfile=${isNewProfile}, list_id=${data.list_id || 'none'}`);
         }
 
         return {
