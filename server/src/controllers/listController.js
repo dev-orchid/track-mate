@@ -543,7 +543,7 @@ exports.syncListTags = async (req, res) => {
       profileIds,
       tagIds,
       company_id,
-      'list_sync'
+      'manual'
     );
 
     // Update tag profile counts
