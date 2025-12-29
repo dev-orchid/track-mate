@@ -32,6 +32,10 @@ router.get("/api/profile-events", verifyToken, profileController.getAllProfilesW
 // Get new profiles for notifications
 router.get("/api/notifications/new-profiles", verifyToken, profileController.getNewProfiles);
 
+// Anonymous visitor tracking endpoints
+router.get("/api/anonymous/sessions", verifyToken, eventsController.getAnonymousSessions);
+router.get("/api/anonymous/stats", verifyToken, eventsController.getAnonymousStats);
+
 // Webhook endpoints - require API key authentication + rate limiting + logging
 router.post("/api/webhooks/events", webhookAuthRateLimiter, webhookRateLimiter, verifyWebhookKey, webhookLogger, webhookController.handleWebhookEvent);
 router.get("/api/webhooks/info", webhookRateLimiter, verifyWebhookKey, webhookLogger, webhookController.getWebhookInfo);

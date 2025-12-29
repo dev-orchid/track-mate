@@ -241,3 +241,99 @@ exports.addEventsToSession = async (sessionId, events) => {
         return [];
     }
 };
+
+/**
+ * Get anonymous sessions (sessions without a linked profile)
+ * These are visitors who viewed pages but haven't filled a form yet
+ * @param {string} company_id - Company ID
+ * @returns {Array} Array of anonymous sessions with events
+ */
+exports.getAnonymousSessions = async (company_id) => {
+    try {
+        const { data, error } = await db
+            .from('event_sessions')
+            .select(`
+                *,
+                events(*)
+            `)
+            .eq('company_id', company_id)
+            .is('profile_id', null)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Transform to match expected structure
+        return (data || []).map(session => ({
+            _id: session.id,
+            sessionId: session.session_id,
+            company_id: session.company_id,
+            list_id: session.list_id,
+            createdAt: session.created_at,
+            events: (session.events || []).map(event => ({
+                _id: event.id,
+                eventType: event.event_type,
+                eventData: event.event_data,
+                timestamp: event.timestamp
+            }))
+        }));
+    } catch (err) {
+        console.error('Error fetching anonymous sessions:', err);
+        return [];
+    }
+};
+
+/**
+ * Get anonymous session stats for a company
+ * @param {string} company_id - Company ID
+ * @returns {Object} Stats object with counts
+ */
+exports.getAnonymousStats = async (company_id) => {
+    try {
+        // Get count of anonymous sessions
+        const { count: totalAnonymous, error: countError } = await db
+            .from('event_sessions')
+            .select('*', { count: 'exact', head: true })
+            .eq('company_id', company_id)
+            .is('profile_id', null);
+
+        if (countError) throw countError;
+
+        // Get recent anonymous sessions (last 7 days)
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        const { count: recentAnonymous, error: recentError } = await db
+            .from('event_sessions')
+            .select('*', { count: 'exact', head: true })
+            .eq('company_id', company_id)
+            .is('profile_id', null)
+            .gte('created_at', sevenDaysAgo.toISOString());
+
+        if (recentError) throw recentError;
+
+        // Get total page views from anonymous sessions
+        const { data: pageViewData, error: pageViewError } = await db
+            .from('event_sessions')
+            .select(`
+                events!inner(event_type)
+            `)
+            .eq('company_id', company_id)
+            .is('profile_id', null)
+            .eq('events.event_type', 'page_view');
+
+        const anonymousPageViews = pageViewData?.length || 0;
+
+        return {
+            totalAnonymous: totalAnonymous || 0,
+            recentAnonymous: recentAnonymous || 0,
+            anonymousPageViews
+        };
+    } catch (err) {
+        console.error('Error fetching anonymous stats:', err);
+        return {
+            totalAnonymous: 0,
+            recentAnonymous: 0,
+            anonymousPageViews: 0
+        };
+    }
+};

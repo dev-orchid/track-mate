@@ -31,6 +31,51 @@ exports.getAllTracking = async (req, res) => {
 		res.status(500).json({ status: "error", error: err.message });
 	}
 };
+// Get anonymous sessions (visitors who haven't filled a form yet)
+exports.getAnonymousSessions = async (req, res) => {
+	try {
+		const company_id = req.user.company_id;
+		const data = await eventsModel.getAnonymousSessions(company_id);
+
+		logger.logDatabase('get_anonymous_sessions', {
+			request_id: req.id,
+			company_id: company_id,
+			count: data.length
+		});
+
+		res.json({ status: "success", data });
+	} catch (err) {
+		logger.error('Get anonymous sessions error', {
+			request_id: req.id,
+			error: err.message,
+			stack: err.stack
+		});
+		res.status(500).json({ status: "error", error: err.message });
+	}
+};
+
+// Get anonymous visitor stats
+exports.getAnonymousStats = async (req, res) => {
+	try {
+		const company_id = req.user.company_id;
+		const stats = await eventsModel.getAnonymousStats(company_id);
+
+		logger.logDatabase('get_anonymous_stats', {
+			request_id: req.id,
+			company_id: company_id
+		});
+
+		res.json({ status: "success", data: stats });
+	} catch (err) {
+		logger.error('Get anonymous stats error', {
+			request_id: req.id,
+			error: err.message,
+			stack: err.stack
+		});
+		res.status(500).json({ status: "error", error: err.message });
+	}
+};
+
 //event creation
 exports.createEvent = async (req, res) => {
 	try {

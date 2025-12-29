@@ -43,4 +43,26 @@ export async function getProfileById(id: string) {
   }
   return response.data;
 }
+// Get anonymous visitor stats
+export async function getAnonymousStats() {
+  try {
+    const response = await axiosInstance.get("/api/anonymous/stats");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching anonymous stats:", error);
+    throw error;
+  }
+}
+
+// Get anonymous sessions
+export async function getAnonymousSessions() {
+  try {
+    const response = await axiosInstance.get("/api/anonymous/sessions");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching anonymous sessions:", error);
+    throw error;
+  }
+}
+
 export { getEventData, getProfileData };
