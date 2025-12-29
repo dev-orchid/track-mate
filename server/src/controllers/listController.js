@@ -549,8 +549,7 @@ exports.syncListTags = async (req, res) => {
     // Update tag profile counts
     const tagModel = require('../models/tagModel');
     for (const tagId of tagIds) {
-      const count = await profileTagModel.countProfilesWithTag(tagId, company_id);
-      await tagModel.updateTag(tagId, company_id, { profile_count: count });
+      await tagModel.updateProfileCount(tagId, company_id);
     }
 
     // Update list profile count

@@ -219,9 +219,8 @@ exports.profileCreation = async (data) => {
                             console.log(`[AUTO-TAG] Successfully added tag ${tagId} to profile ${profile.id}`);
 
                             // Update the tag's profile_count
-                            const count = await profileTagModel.countProfilesWithTag(tagId, data.company_id);
-                            await tagModel.updateTag(tagId, data.company_id, { profile_count: count });
-                            console.log(`[AUTO-TAG] Updated tag ${tagId} profile_count to ${count}`);
+                            await tagModel.updateProfileCount(tagId, data.company_id);
+                            console.log(`[AUTO-TAG] Updated tag ${tagId} profile_count`);
                         } catch (tagErr) {
                             console.log(`[AUTO-TAG] Tag ${tagId} assignment error: ${tagErr.message}`);
                         }
