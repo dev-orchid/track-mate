@@ -92,7 +92,7 @@
         name:user.name||'Unknown',
         email:user.email,
         phone:user.phone||null,
-        source:'pixel'
+        source:'form'
       });
     }
   };
