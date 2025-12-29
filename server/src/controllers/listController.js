@@ -412,3 +412,99 @@ exports.refreshListCount = async (req, res) => {
     });
   }
 };
+
+/**
+ * Sync list - assign list tags to all profiles with this list_id
+ * This fixes profiles that have list_id but weren't auto-tagged
+ */
+exports.syncListTags = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const company_id = req.user.company_id;
+
+    // Get the list with tags
+    const list = await listModel.getListById(id, company_id);
+    if (!list) {
+      return res.status(404).json({
+        success: false,
+        message: 'List not found'
+      });
+    }
+
+    if (!list.tags || list.tags.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'List has no tags to sync'
+      });
+    }
+
+    // Get the list_id (6-char ID like LST-XXXXXX)
+    const listId = list.list_id;
+    const tagIds = list.tags.map(t => t._id || t.id);
+
+    // Get all profiles with this list_id
+    const { db } = require('../utils/dbConnect');
+    const { data: profiles, error: profileError } = await db
+      .from('profiles')
+      .select('id')
+      .eq('company_id', company_id)
+      .eq('list_id', listId);
+
+    if (profileError) throw profileError;
+
+    if (!profiles || profiles.length === 0) {
+      return res.json({
+        success: true,
+        message: 'No profiles found with this list_id',
+        synced: 0
+      });
+    }
+
+    // Add tags to all these profiles
+    const profileTagModel = require('../models/profileTagModel');
+    const profileIds = profiles.map(p => p.id);
+
+    const result = await profileTagModel.bulkAddTags(
+      profileIds,
+      tagIds,
+      company_id,
+      'list_sync'
+    );
+
+    // Update tag profile counts
+    const tagModel = require('../models/tagModel');
+    for (const tagId of tagIds) {
+      const count = await profileTagModel.countProfilesWithTag(tagId, company_id);
+      await tagModel.updateTag(tagId, company_id, { profile_count: count });
+    }
+
+    // Update list profile count
+    await listModel.updateListProfileCount(id);
+
+    logger.logRequest(req, {
+      action: 'list_tags_synced',
+      list_id: id,
+      profiles_synced: profileIds.length,
+      tags_applied: tagIds.length
+    });
+
+    res.json({
+      success: true,
+      message: `Synced ${tagIds.length} tag(s) to ${profileIds.length} profile(s)`,
+      synced: profileIds.length,
+      tags: tagIds.length
+    });
+  } catch (error) {
+    logger.error('Sync list tags error', {
+      request_id: req.id,
+      list_id: req.params.id,
+      error: error.message,
+      stack: error.stack
+    });
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};

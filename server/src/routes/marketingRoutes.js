@@ -72,6 +72,9 @@ router.get('/lists/:id/profiles', listController.getListProfiles);
 // Refresh list profile count
 router.post('/lists/:id/refresh-count', listController.refreshListCount);
 
+// Sync list tags to profiles (assign tags to profiles with this list_id)
+router.post('/lists/:id/sync-tags', listController.syncListTags);
+
 // ============================================
 // CAMPAIGN ROUTES
 // ============================================
