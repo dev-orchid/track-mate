@@ -20,9 +20,9 @@ exports.createList = async (req, res) => {
       });
     }
 
-    // Sanitize inputs
-    const sanitizedName = sanitizer.sanitizeString(name);
-    const sanitizedDescription = description ? sanitizer.sanitizeString(description) : '';
+    // Sanitize inputs - use sanitizeName to preserve apostrophes in names
+    const sanitizedName = sanitizer.sanitizeName(name);
+    const sanitizedDescription = description ? sanitizer.sanitizeName(description) : '';
 
     const listData = {
       name: sanitizedName,
@@ -149,8 +149,8 @@ exports.updateList = async (req, res) => {
 
     const updateData = {};
 
-    if (name) updateData.name = sanitizer.sanitizeString(name);
-    if (description !== undefined) updateData.description = sanitizer.sanitizeString(description);
+    if (name) updateData.name = sanitizer.sanitizeName(name);
+    if (description !== undefined) updateData.description = sanitizer.sanitizeName(description);
     if (tag_logic) updateData.tag_logic = tag_logic;
     if (status) updateData.status = status;
 

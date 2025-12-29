@@ -8,12 +8,29 @@ const validator = require('validator');
 
 /**
  * Sanitize a string by escaping HTML entities
+ * Use for content that will be rendered as HTML
  * @param {string} str - Input string to sanitize
  * @returns {string} - Sanitized string
  */
 exports.sanitizeString = (str) => {
   if (typeof str !== 'string') return str;
   return validator.escape(str.trim());
+};
+
+/**
+ * Sanitize a name/title - trim and remove dangerous characters but preserve apostrophes
+ * Use for names, titles, labels that are displayed as text (not HTML)
+ * @param {string} str - Input string to sanitize
+ * @returns {string} - Sanitized string
+ */
+exports.sanitizeName = (str) => {
+  if (typeof str !== 'string') return str;
+  // Remove script tags and dangerous patterns, but preserve normal punctuation
+  return str.trim()
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<[^>]*>/g, '') // Remove any HTML tags
+    .replace(/javascript:/gi, '')
+    .replace(/on\w+=/gi, ''); // Remove event handlers like onclick=
 };
 
 /**

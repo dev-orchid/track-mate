@@ -42,15 +42,15 @@ exports.createCampaign = async (req, res) => {
       });
     }
 
-    // Sanitize inputs
+    // Sanitize inputs - use sanitizeName for names/descriptions to preserve apostrophes
     const campaignData = {
       company_id,
       created_by,
-      name: sanitizer.sanitizeString(name),
-      description: description ? sanitizer.sanitizeString(description) : '',
-      subject: sanitizer.sanitizeString(subject),
-      preview_text: preview_text ? sanitizer.sanitizeString(preview_text) : '',
-      from_name: sanitizer.sanitizeString(from_name),
+      name: sanitizer.sanitizeName(name),
+      description: description ? sanitizer.sanitizeName(description) : '',
+      subject: sanitizer.sanitizeName(subject),
+      preview_text: preview_text ? sanitizer.sanitizeName(preview_text) : '',
+      from_name: sanitizer.sanitizeName(from_name),
       from_email: sanitizer.sanitizeEmail(from_email),
       reply_to: reply_to ? sanitizer.sanitizeEmail(reply_to) : '',
       html_content,
@@ -202,11 +202,11 @@ exports.updateCampaign = async (req, res) => {
       text_content
     } = req.body;
 
-    if (name) updateData.name = sanitizer.sanitizeString(name);
-    if (description !== undefined) updateData.description = sanitizer.sanitizeString(description);
-    if (subject) updateData.subject = sanitizer.sanitizeString(subject);
-    if (preview_text !== undefined) updateData.preview_text = sanitizer.sanitizeString(preview_text);
-    if (from_name) updateData.from_name = sanitizer.sanitizeString(from_name);
+    if (name) updateData.name = sanitizer.sanitizeName(name);
+    if (description !== undefined) updateData.description = sanitizer.sanitizeName(description);
+    if (subject) updateData.subject = sanitizer.sanitizeName(subject);
+    if (preview_text !== undefined) updateData.preview_text = sanitizer.sanitizeName(preview_text);
+    if (from_name) updateData.from_name = sanitizer.sanitizeName(from_name);
     if (from_email) {
       const sanitizedEmail = sanitizer.sanitizeEmail(from_email);
       if (!sanitizedEmail) {

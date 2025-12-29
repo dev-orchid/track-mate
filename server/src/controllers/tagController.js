@@ -23,9 +23,9 @@ exports.createTag = async (req, res) => {
       });
     }
 
-    // Sanitize inputs
-    const sanitizedName = sanitizer.sanitizeString(name);
-    const sanitizedDescription = description ? sanitizer.sanitizeString(description) : '';
+    // Sanitize inputs - use sanitizeName to preserve apostrophes
+    const sanitizedName = sanitizer.sanitizeName(name);
+    const sanitizedDescription = description ? sanitizer.sanitizeName(description) : '';
 
     const tagData = {
       name: sanitizedName,
@@ -152,9 +152,9 @@ exports.updateTag = async (req, res) => {
 
     const updateData = {};
 
-    if (name) updateData.name = sanitizer.sanitizeString(name);
+    if (name) updateData.name = sanitizer.sanitizeName(name);
     if (color) updateData.color = color;
-    if (description !== undefined) updateData.description = sanitizer.sanitizeString(description);
+    if (description !== undefined) updateData.description = sanitizer.sanitizeName(description);
 
     const tag = await tagModel.updateTag(id, company_id, updateData);
 
