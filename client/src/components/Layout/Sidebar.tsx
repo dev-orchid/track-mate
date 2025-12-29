@@ -68,6 +68,17 @@ const Sidebar: React.FC = () => {
             </Link>
           </li>
 
+          <li className={`nav-item ${isActive('/anonymous') ? 'active' : ''}`}>
+            <Link href="/anonymous" className="nav-link">
+              <svg className="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2"/>
+                <path d="M6 21V19C6 16.7909 7.79086 15 10 15H14C16.2091 15 18 16.7909 18 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M12 4V2M8 5L6.5 3.5M16 5L17.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              <span>Anonymous</span>
+            </Link>
+          </li>
+
           <li className={`nav-item ${isActive('/reports') ? 'active' : ''}`}>
             <Link href="/reports" className="nav-link">
               <svg className="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
