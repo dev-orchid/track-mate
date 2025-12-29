@@ -55,7 +55,39 @@ exports.sanitizePhone = (phone) => {
 };
 
 /**
- * Sanitize object by escaping all string values
+ * Sanitize a URL - validate and clean without HTML escaping
+ * @param {string} url - URL to sanitize
+ * @returns {string} - Sanitized URL or original if invalid
+ */
+exports.sanitizeUrl = (url) => {
+  if (typeof url !== 'string') return url;
+
+  const trimmed = url.trim();
+
+  // Check if it's a valid URL
+  if (validator.isURL(trimmed, { require_protocol: true })) {
+    // Remove any potential javascript: or data: protocols for safety
+    if (/^(javascript|data|vbscript):/i.test(trimmed)) {
+      return '';
+    }
+    return trimmed;
+  }
+
+  // If it looks like a URL but missing protocol, try adding https://
+  if (validator.isURL(trimmed, { require_protocol: false })) {
+    const withProtocol = 'https://' + trimmed;
+    if (/^(javascript|data|vbscript):/i.test(trimmed)) {
+      return '';
+    }
+    return withProtocol;
+  }
+
+  // Not a URL, return escaped version
+  return validator.escape(trimmed);
+};
+
+/**
+ * Sanitize object by escaping string values, but preserve URLs
  * @param {object} obj - Object to sanitize
  * @returns {object} - Sanitized object
  */
@@ -64,12 +96,23 @@ exports.sanitizeObject = (obj) => {
 
   const sanitized = {};
 
+  // Keys that typically contain URLs - don't HTML escape these
+  const urlKeys = ['address', 'url', 'href', 'src', 'link', 'redirect', 'callback'];
+
   for (const key in obj) {
     if (obj.hasOwnProperty(key)) {
       const value = obj[key];
 
       if (typeof value === 'string') {
-        sanitized[key] = validator.escape(value.trim());
+        // Check if this key typically contains URLs or if value looks like a URL
+        const isUrlKey = urlKeys.includes(key.toLowerCase());
+        const looksLikeUrl = /^https?:\/\//i.test(value.trim());
+
+        if (isUrlKey || looksLikeUrl) {
+          sanitized[key] = exports.sanitizeUrl(value);
+        } else {
+          sanitized[key] = validator.escape(value.trim());
+        }
       } else if (Array.isArray(value)) {
         sanitized[key] = value.map(item =>
           typeof item === 'string' ? validator.escape(item.trim()) : item
