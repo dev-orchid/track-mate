@@ -1,7 +1,8 @@
 // Serverless environment - use console logging only
+// Supabase version
 const express = require('express');
 const cors = require('cors');
-const mongoSanitizeMiddleware = require('../src/middleware/mongoSanitize');
+const path = require('path');
 const trackingRoutes = require('../src/routes/trackingRoutes');
 const authRoutes = require('../src/routes/authRouter');
 const marketingRoutes = require('../src/routes/marketingRoutes');
@@ -11,7 +12,7 @@ const { connectDB } = require('../src/utils/dbConnect');
 const app = express();
 
 // Validate environment variables
-const requiredEnvVars = ['MONGODB_URI', 'JWT_SECRET', 'REFRESH_TOKEN_SECRET'];
+const requiredEnvVars = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'];
 const missingVars = requiredEnvVars.filter(v => !process.env[v]);
 if (missingVars.length > 0) {
   logger.error('Missing required environment variables', {
@@ -20,7 +21,7 @@ if (missingVars.length > 0) {
   console.error('Missing required environment variables:', missingVars.join(', '));
 }
 
-// Middleware to parse JSON (must come before mongo-sanitize)
+// Middleware to parse JSON
 app.use(express.json());
 
 // CORS configuration - allow requests from dashboard and tracking snippets
@@ -49,9 +50,6 @@ app.use(cors({
   credentials: true
 }));
 
-// Security: Sanitize user input to prevent NoSQL injection
-app.use(mongoSanitizeMiddleware);
-
 // Initialize database connection
 let dbConnected = false;
 const initDB = async () => {
@@ -74,6 +72,13 @@ const initDB = async () => {
 app.use(async (req, res, next) => {
   await initDB();
   next();
+});
+
+// Serve tracking pixel script with permissive CORS
+app.get('/tm.js', cors(), (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.sendFile(path.join(__dirname, '../public/tm.js'));
 });
 
 // Set up API routes

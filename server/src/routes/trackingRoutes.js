@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const router = express.Router();
 
 const eventsController = require("../controllers/eventsController");
@@ -10,13 +11,19 @@ const verifyWebhookKey = require("../utils/verifyWebhookKey");
 const webhookLogger = require("../utils/webhookLogger");
 const { webhookRateLimiter, webhookAuthRateLimiter, generalApiRateLimiter } = require("../utils/rateLimiter");
 
+// Permissive CORS for tracking pixel endpoints (must work on any customer website)
+const trackingCors = cors({ origin: true, credentials: false });
+
 // Apply general rate limiter to all routes
 router.use(generalApiRateLimiter);
 
 router.get("/api/getData", verifyToken, eventsController.getAllTracking);
 // Profile and event creation endpoints - DO NOT require verifyToken as they're called by tracking snippet
-router.post("/api/profile", profileController.profileCreation);
-router.post("/api/events", eventsController.createEvent);
+// Use permissive CORS to allow requests from any customer website
+router.post("/api/profile", trackingCors, profileController.profileCreation);
+router.post("/api/events", trackingCors, eventsController.createEvent);
+router.options("/api/profile", trackingCors); // Handle preflight
+router.options("/api/events", trackingCors); // Handle preflight
 // Protected endpoints - require authentication
 router.get("/api/profile", verifyToken, profileController.getAllProfilesWithEvents);
 router.get("/api/profile/:id", verifyToken, profileController.getProfileById);

@@ -1,8 +1,10 @@
 // server/src/controllers/tagController.js
+// Supabase version
 const tagModel = require('../models/tagModel');
 const profileTagModel = require('../models/profileTagModel');
 const sanitizer = require('../utils/sanitizer');
 const logger = require('../utils/logger');
+const { db } = require('../utils/dbConnect');
 
 /**
  * Create a new tag
@@ -195,8 +197,18 @@ exports.deleteTag = async (req, res) => {
     const { id } = req.params;
     const company_id = req.user.company_id;
 
-    // Delete all profile-tag relationships
-    await profileTagModel.ProfileTag.deleteMany({ tag_id: id, company_id });
+    // Delete all profile-tag relationships using Supabase query
+    await db
+      .from('profile_tags')
+      .delete()
+      .eq('tag_id', id)
+      .eq('company_id', company_id);
+
+    // Also delete from list_tags
+    await db
+      .from('list_tags')
+      .delete()
+      .eq('tag_id', id);
 
     const tag = await tagModel.deleteTag(id, company_id);
 
@@ -262,7 +274,7 @@ exports.addTagToProfiles = async (req, res) => {
     res.json({
       success: true,
       message: `Tag added to ${profile_ids.length} profile(s)`,
-      modified_count: result.modifiedCount
+      inserted_count: result.insertedCount
     });
   } catch (error) {
     logger.error('Add tag to profiles error', {

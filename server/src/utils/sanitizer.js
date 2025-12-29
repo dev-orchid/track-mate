@@ -157,30 +157,64 @@ exports.sanitizeEventData = (data) => {
   const errors = [];
   const sanitized = {};
 
-  // Event type validation
-  if (data.eventType) {
-    if (typeof data.eventType !== 'string' || data.eventType.trim().length === 0) {
-      errors.push('Event type is required');
-    } else if (data.eventType.length > 50) {
-      errors.push('Event type must be less than 50 characters');
+  // Company ID validation
+  if (data.company_id) {
+    if (typeof data.company_id === 'string' && /^TM-[A-Z0-9]+$/.test(data.company_id)) {
+      sanitized.company_id = data.company_id;
     } else {
-      sanitized.eventType = validator.escape(data.eventType.trim());
+      errors.push('Invalid company ID format');
     }
   }
 
-  // Event data object sanitization
-  if (data.eventData) {
-    sanitized.eventData = exports.sanitizeObject(data.eventData);
+  // Session ID validation
+  if (data.sessionId) {
+    if (typeof data.sessionId === 'string' && data.sessionId.length > 0) {
+      sanitized.sessionId = validator.escape(data.sessionId);
+    }
   }
 
-  // Timestamp validation
-  if (data.timestamp) {
-    const date = new Date(data.timestamp);
-    if (isNaN(date.getTime())) {
-      errors.push('Invalid timestamp format');
+  // List ID validation (optional)
+  if (data.list_id) {
+    if (typeof data.list_id === 'string' && /^LST-[A-Z0-9]+$/.test(data.list_id)) {
+      sanitized.list_id = data.list_id;
     } else {
-      sanitized.timestamp = date;
+      errors.push('Invalid list ID format');
     }
+  }
+
+  // Events array validation
+  if (data.events && Array.isArray(data.events)) {
+    sanitized.events = data.events.map(event => {
+      const sanitizedEvent = {};
+
+      // Event type validation
+      if (event.eventType) {
+        if (typeof event.eventType !== 'string' || event.eventType.trim().length === 0) {
+          errors.push('Event type is required');
+        } else if (event.eventType.length > 50) {
+          errors.push('Event type must be less than 50 characters');
+        } else {
+          sanitizedEvent.eventType = validator.escape(event.eventType.trim());
+        }
+      }
+
+      // Event data object sanitization
+      if (event.eventData) {
+        sanitizedEvent.eventData = exports.sanitizeObject(event.eventData);
+      }
+
+      // Timestamp validation
+      if (event.timestamp) {
+        const date = new Date(event.timestamp);
+        if (isNaN(date.getTime())) {
+          errors.push('Invalid timestamp format');
+        } else {
+          sanitizedEvent.timestamp = date;
+        }
+      }
+
+      return sanitizedEvent;
+    });
   }
 
   return {

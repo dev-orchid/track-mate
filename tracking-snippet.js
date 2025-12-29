@@ -78,6 +78,7 @@
       var payload = {
         company_id: this.companyId,
         sessionId: this.sessionId,
+        list_id: this.listId, // Include list_id if set during init
         events: [{
           eventType: eventType,
           eventData: eventData || {},

@@ -1,5 +1,7 @@
 // server/src/utils/verifyWebhookKey.js
+// Supabase version
 const Account = require('../models/authModel');
+const logger = require('./logger');
 
 /**
  * Middleware to verify webhook API key
@@ -25,8 +27,8 @@ const verifyWebhookKey = async (req, res, next) => {
       });
     }
 
-    // Find account by API key
-    const account = await Account.findOne({ api_key: apiKey });
+    // Find account by API key using the Supabase model function
+    const account = await Account.findByApiKey(apiKey);
 
     if (!account) {
       return res.status(401).json({
@@ -38,13 +40,16 @@ const verifyWebhookKey = async (req, res, next) => {
     // Attach account info to request for use in controller
     req.webhook = {
       company_id: account.company_id,
-      account_id: account._id,
+      account_id: account._id || account.id,
       email: account.email
     };
 
     next();
   } catch (error) {
-    console.error('Webhook authentication error:', error);
+    logger.error('Webhook authentication error', {
+      error: error.message,
+      stack: error.stack
+    });
     return res.status(500).json({
       success: false,
       error: 'Internal server error during authentication'

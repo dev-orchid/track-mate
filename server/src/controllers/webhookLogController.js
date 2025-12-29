@@ -1,5 +1,7 @@
 // server/src/controllers/webhookLogController.js
+// Supabase version
 const webhookLogModel = require('../models/webhookLogModel');
+const logger = require('../utils/logger');
 
 /**
  * Get webhook logs for the authenticated company
@@ -41,7 +43,11 @@ exports.getWebhookLogs = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error fetching webhook logs:', error);
+    logger.error('Error fetching webhook logs', {
+      request_id: req.id,
+      error: error.message,
+      stack: error.stack
+    });
     res.status(500).json({
       success: false,
       error: 'Failed to fetch webhook logs'
@@ -66,7 +72,11 @@ exports.getWebhookLogStats = async (req, res) => {
       period: `Last ${days} days`
     });
   } catch (error) {
-    console.error('Error fetching webhook log stats:', error);
+    logger.error('Error fetching webhook log stats', {
+      request_id: req.id,
+      error: error.message,
+      stack: error.stack
+    });
     res.status(500).json({
       success: false,
       error: 'Failed to fetch webhook log statistics'
@@ -83,11 +93,8 @@ exports.getWebhookLogById = async (req, res) => {
     const company_id = req.user.company_id;
     const { id } = req.params;
 
-    const { WebhookLog } = require('../models/webhookLogModel');
-    const log = await WebhookLog.findOne({
-      _id: id,
-      company_id: company_id
-    });
+    // Use the model function instead of direct model access
+    const log = await webhookLogModel.getWebhookLogById(id, company_id);
 
     if (!log) {
       return res.status(404).json({
@@ -101,7 +108,12 @@ exports.getWebhookLogById = async (req, res) => {
       data: log
     });
   } catch (error) {
-    console.error('Error fetching webhook log:', error);
+    logger.error('Error fetching webhook log', {
+      request_id: req.id,
+      log_id: req.params.id,
+      error: error.message,
+      stack: error.stack
+    });
     res.status(500).json({
       success: false,
       error: 'Failed to fetch webhook log'

@@ -1,7 +1,7 @@
 // server/src/controllers/webhookController.js
-const mongoose = require('../utils/dbConnect');
-const Profile = mongoose.model('Profile');
-const Event = mongoose.model('Event');
+// Supabase version
+const profileModel = require('../models/profileModel');
+const eventsModel = require('../models/eventsModel');
 const sanitizer = require('../utils/sanitizer');
 const logger = require('../utils/logger');
 
@@ -72,26 +72,27 @@ exports.handleWebhookEvent = async (req, res) => {
 
     if (sanitizedEmail) {
       // Method 1: Email-based binding (RECOMMENDED)
-      profile = await Profile.findOne({
-        email: sanitizedEmail,
-        company_id: company_id
-      });
+      profile = await profileModel.findByEmail(sanitizedEmail, company_id);
 
       if (!profile) {
         // Create new profile if doesn't exist
-        profile = await Profile.create({
+        const profileResult = await profileModel.profileCreation({
           email: sanitizedEmail,
           name: sanitizedName || 'Unknown',
           phone: sanitizedPhone || null,
           company_id: company_id,
-          createdAt: new Date(),
-          lastActive: new Date()
+          source: 'webhook',
+          sessionId: sanitizedSessionId || `webhook_${Date.now()}_email`
         });
+
+        if (profileResult.id === 1 && profileResult.response) {
+          profile = profileResult.response;
+        }
 
         logger.logWebhook('profile_created_via_webhook', {
           request_id: req.id,
           company_id: company_id,
-          profile_id: profile._id,
+          profile_id: profile?._id || profile?.id,
           email: sanitizedEmail
         });
       }
@@ -101,10 +102,7 @@ exports.handleWebhookEvent = async (req, res) => {
     else if (identifier.userId) {
       // Method 2: Direct profile ID binding
       const sanitizedUserId = sanitizer.sanitizeString(identifier.userId);
-      profile = await Profile.findOne({
-        _id: sanitizedUserId,
-        company_id: company_id
-      });
+      profile = await profileModel.findById(sanitizedUserId, company_id);
 
       if (!profile) {
         logger.logSecurity('webhook_profile_not_found', {
@@ -123,14 +121,10 @@ exports.handleWebhookEvent = async (req, res) => {
     }
     else if (sanitizedSessionId) {
       // Method 3: Session ID binding (find user from existing session)
-      const existingEvent = await Event.findOne({
-        sessionId: sanitizedSessionId,
-        company_id: company_id,
-        userId: { $ne: null }
-      });
+      const existingSession = await eventsModel.findSessionWithProfile(sanitizedSessionId, company_id);
 
-      if (existingEvent && existingEvent.userId) {
-        profile = await Profile.findById(existingEvent.userId);
+      if (existingSession && existingSession.userId) {
+        profile = existingSession.userId; // Profile is populated
         sessionId = sanitizedSessionId;
       } else {
         logger.logSecurity('webhook_session_not_found', {
@@ -164,38 +158,39 @@ exports.handleWebhookEvent = async (req, res) => {
       });
     }
 
+    const profileId = profile._id || profile.id;
+
     // Step 2: Create event linked to profile
     const eventPayload = {
-      userId: profile._id,
+      userId: profileId,
       company_id: company_id,
       sessionId: sessionId,
       events: [{
         eventType: sanitizedEventType,
         eventData: sanitizedEventData,
-        timestamp: timestamp ? new Date(timestamp) : new Date()
+        timestamp: timestamp ? new Date(timestamp).toISOString() : new Date().toISOString()
       }]
     };
 
-    const eventResult = await Event.create(eventPayload);
+    const eventResult = await eventsModel.eventCreation(eventPayload);
 
     logger.logWebhook('webhook_event_processed', {
       request_id: req.id,
       company_id: company_id,
-      profile_id: profile._id,
-      event_id: eventResult._id,
+      profile_id: profileId,
+      event_id: eventResult.response?._id || eventResult.response?.id,
       event_type: sanitizedEventType
     });
 
     // Step 3: Update profile lastActive
-    profile.lastActive = new Date();
-    await profile.save();
+    await profileModel.updateLastActive(profileId);
 
     // Success response
     return res.status(200).json({
       success: true,
       message: 'Webhook event processed successfully',
-      eventId: eventResult._id,
-      profileId: profile._id,
+      eventId: eventResult.response?._id || eventResult.response?.id,
+      profileId: profileId,
       eventType: sanitizedEventType
     });
 
@@ -222,7 +217,7 @@ exports.getWebhookInfo = async (req, res) => {
     const account_id = req.webhook.account_id;
 
     const Account = require('../models/authModel');
-    const account = await Account.findById(account_id).select('api_key api_key_created_at company_id');
+    const account = await Account.findById(account_id);
 
     if (!account) {
       return res.status(404).json({
