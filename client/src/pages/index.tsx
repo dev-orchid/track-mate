@@ -4,24 +4,42 @@ import Header from "../components/Layout/Header";
 import Sidebar from "../components/Layout/Sidebar";
 import Footer from "../components/Layout/Footer";
 import EventData from "../components/Dashboard/EventData";
-import useProfile from "../hooks/useProfile";
+import useProfiles from "../hooks/useProfile";
 import { getValidToken } from "../utils/authHelper";
 
 const Dashboard = () => {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const profileData = useProfile();
+  const [authLoading, setAuthLoading] = useState(true);
+  const { profiles, loading: profilesLoading } = useProfiles();
 
   useEffect(() => {
     if (!getValidToken()) {
-      alert(getValidToken());
       router.replace("/login");
       return;
     }
-    setLoading(false);
+    setAuthLoading(false);
   }, []);
 
-  if (loading) return <p>Loading...</p>;
+  if (authLoading || profilesLoading) {
+    return (
+      <div className="dashboard">
+        <aside className="dashboard-sidebar">
+          <Sidebar />
+        </aside>
+        <div className="dashboard-main">
+          <header className="dashboard-header">
+            <Header />
+          </header>
+          <section className="dashboard-content">
+            <div className="loading-state">
+              <div className="spinner"></div>
+              <p>Loading dashboard...</p>
+            </div>
+          </section>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard">
@@ -33,7 +51,7 @@ const Dashboard = () => {
           <Header />
         </header>
         <section className="dashboard-content">
-          <EventData trackingData={profileData} />
+          <EventData trackingData={profiles} />
           <Footer />
         </section>
       </div>
