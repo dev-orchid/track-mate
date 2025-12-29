@@ -45,6 +45,9 @@ router.get('/tags/:id/profiles', tagController.getProfilesByTag);
 // LIST ROUTES
 // ============================================
 
+// Debug auto-tagging setup (must be before :id route)
+router.get('/lists/debug/:list_id', listController.debugAutoTag);
+
 // Create list
 router.post('/lists', listController.createList);
 
@@ -74,9 +77,6 @@ router.post('/lists/:id/refresh-count', listController.refreshListCount);
 
 // Sync list tags to profiles (assign tags to profiles with this list_id)
 router.post('/lists/:id/sync-tags', listController.syncListTags);
-
-// Debug auto-tagging setup (check list, tags, profiles, profile_tags)
-router.get('/lists/debug/:list_id', listController.debugAutoTag);
 
 // ============================================
 // CAMPAIGN ROUTES
