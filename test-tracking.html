@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrackMate Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #FB4C00;
+        }
+        .product-card {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        button {
+            background: #FB4C00;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #e04300;
+        }
+        .form-section {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+        }
+        .log {
+            background: #f3f4f6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>TrackMate Testing Page</h1>
+    <p>This page tests the TrackMate tracking snippet.</p>
+
+    <!-- Include the tracking snippet -->
+    <script src="tracking-snippet.js"></script>
+    <script>
+        // Initialize TrackMate with your company ID
+        TrackMate.init('TM-YXL25', 'http://localhost:8000');
+        console.log('TrackMate initialized!');
+    </script>
+
+    <hr>
+
+    <h2>Test Page View Tracking</h2>
+    <button onclick="testPageView()">Track Page View</button>
+    <div id="pageViewLog" class="log"></div>
+
+    <hr>
+
+    <h2>Test Product Tracking</h2>
+    <div class="product-card">
+        <h3>MacBook Pro 16"</h3>
+        <p>Price: $2,499.99</p>
+        <button onclick="testProductView()">View Product</button>
+        <button onclick="testAddToCart()">Add to Cart</button>
+        <button onclick="testPurchase()">Purchase</button>
+    </div>
+    <div id="productLog" class="log"></div>
+
+    <hr>
+
+    <h2>Test User Identification</h2>
+    <div class="form-section">
+        <p>Identify a user (link anonymous events to a profile):</p>
+        <input type="text" id="userName" placeholder="Name" value="Test User">
+        <input type="email" id="userEmail" placeholder="Email" value="test@example.com">
+        <input type="tel" id="userPhone" placeholder="Phone" value="1234567890">
+        <br>
+        <button onclick="testIdentify()">Identify User</button>
+    </div>
+    <div id="identifyLog" class="log"></div>
+
+    <hr>
+
+    <h2>Test Custom Events</h2>
+    <button onclick="testCustomEvent()">Track Custom Event</button>
+    <div id="customLog" class="log"></div>
+
+    <hr>
+
+    <h2>Tracking Log</h2>
+    <button onclick="clearLog()">Clear Log</button>
+    <div id="trackingLog" class="log" style="max-height: 300px; overflow-y: auto;"></div>
+
+    <script>
+        // Helper function to log events
+        function logEvent(message) {
+            const log = document.getElementById('trackingLog');
+            const timestamp = new Date().toLocaleTimeString();
+            log.innerHTML = `[${timestamp}] ${message}<br>` + log.innerHTML;
+        }
+
+        // Override console.log to capture TrackMate logs
+        const originalConsoleLog = console.log;
+        console.log = function(...args) {
+            originalConsoleLog.apply(console, args);
+            if (args[0] && args[0].includes && args[0].includes('TrackMate')) {
+                logEvent(args.join(' '));
+            }
+        };
+
+        // Test Functions
+        function testPageView() {
+            if (pageViewTracked) {
+                document.getElementById('pageViewLog').innerHTML =
+                    '⚠️ Page view already tracked. Refresh page to track again.';
+                return;
+            }
+            TrackMate.trackPageView();
+            document.getElementById('pageViewLog').innerHTML =
+                '✅ Page view tracked for: ' + window.location.href;
+            logEvent('📄 Page View tracked');
+            pageViewTracked = true;
+        }
+
+        function testProductView() {
+            TrackMate.trackProductView({
+                productName: 'MacBook Pro 16"',
+                productId: 'LAPTOP-001',
+                price: 2499.99
+            });
+            document.getElementById('productLog').innerHTML =
+                '✅ Product view tracked: MacBook Pro 16"';
+            logEvent('👁️ Product View: MacBook Pro 16"');
+        }
+
+        function testAddToCart() {
+            TrackMate.track('add_to_cart', {
+                address: window.location.href,
+                productInfos: [{
+                    productName: 'MacBook Pro 16"',
+                    productId: 'LAPTOP-001',
+                    price: 2499.99
+                }]
+            });
+            document.getElementById('productLog').innerHTML =
+                '✅ Add to cart tracked: MacBook Pro 16"';
+            logEvent('🛒 Add to Cart: MacBook Pro 16"');
+        }
+
+        function testPurchase() {
+            TrackMate.trackPurchase([
+                {
+                    productName: 'MacBook Pro 16"',
+                    productId: 'LAPTOP-001',
+                    price: 2499.99
+                },
+                {
+                    productName: 'USB-C Cable',
+                    productId: 'CABLE-001',
+                    price: 19.99
+                }
+            ], 2519.98);
+            document.getElementById('productLog').innerHTML =
+                '✅ Purchase tracked: $2,519.98';
+            logEvent('💰 Purchase: $2,519.98');
+        }
+
+        function testIdentify() {
+            const name = document.getElementById('userName').value;
+            const email = document.getElementById('userEmail').value;
+            const phone = document.getElementById('userPhone').value;
+
+            TrackMate.identify({
+                name: name,
+                email: email,
+                phone: parseInt(phone)
+            });
+
+            document.getElementById('identifyLog').innerHTML =
+                `✅ User identified: ${name} (${email})`;
+            logEvent(`👤 User Identified: ${name}`);
+        }
+
+        function testCustomEvent() {
+            TrackMate.trackCustom('button_click', {
+                buttonName: 'Test Button',
+                page: 'test-page',
+                timestamp: new Date().toISOString()
+            });
+            document.getElementById('customLog').innerHTML =
+                '✅ Custom event tracked: button_click';
+            logEvent('⚡ Custom Event: button_click');
+        }
+
+        function clearLog() {
+            document.getElementById('trackingLog').innerHTML = '';
+        }
+
+        // Auto-track page view on load (only once)
+        let pageViewTracked = false;
+        window.addEventListener('load', function() {
+            if (!pageViewTracked) {
+                setTimeout(function() {
+                    TrackMate.trackPageView();
+                    document.getElementById('pageViewLog').innerHTML =
+                        '✅ Page view auto-tracked on load';
+                    logEvent('📄 Auto Page View tracked');
+                    pageViewTracked = true;
+                }, 1000);
+            }
+        });
+    </script>
+
+    <hr>
+    <footer style="margin-top: 50px; text-align: center; color: #666;">
+        <p>TrackMate Testing Page | Company ID: TM-YXL25</p>
+        <p>Check your dashboard at <a href="http://localhost:3000" target="_blank">http://localhost:3000</a></p>
+    </footer>
+</body>
+</html>

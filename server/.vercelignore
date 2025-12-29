@@ -1,0 +1,42 @@
+# Dependencies
+node_modules
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files (will be set in Vercel)
+.env
+.env.local
+.env*.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+*.test.js
+*.spec.js
+__tests__
+coverage
+
+# Testing scripts
+check-*.js
+
+# Backup files
+*_bkp.*
+*_old.*
+*.backup
+
+# Development files
+nodemon.json
