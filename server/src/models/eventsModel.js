@@ -49,11 +49,29 @@ exports.getAllEvent = async (company_id) => {
  */
 exports.eventCreation = async (eventData) => {
     try {
+        let profileId = eventData.userId || null;
+
+        // Handle returning visitors - look up profile by email
+        if (!profileId && eventData.returning_user && eventData.returning_user.email) {
+            const profileModel = require('./profileModel');
+            const existingProfile = await profileModel.findByEmail(
+                eventData.returning_user.email,
+                eventData.company_id
+            );
+            if (existingProfile) {
+                profileId = existingProfile.id || existingProfile._id;
+                console.log(`[RETURNING] Found existing profile for ${eventData.returning_user.email}: ${profileId}`);
+
+                // Update lastActive for returning visitor
+                await profileModel.updateLastActive(profileId);
+            }
+        }
+
         // Create event session first
         const { data: session, error: sessionError } = await db
             .from('event_sessions')
             .insert({
-                profile_id: eventData.userId || null,
+                profile_id: profileId,
                 company_id: eventData.company_id,
                 session_id: eventData.sessionId,
                 list_id: eventData.list_id || null

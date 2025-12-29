@@ -1,16 +1,23 @@
 /**
- * TrackMate Pixel - v1.0.0
+ * TrackMate Pixel - v1.1.0
  * Embed: <script src="https://your-api.com/tm.js" data-company="TM-XXXXX" data-list="LST-XXXXX"></script>
+ *
+ * Features:
+ * - Automatic page view tracking
+ * - SPA support (history API)
+ * - Returning visitor recognition
+ * - Cross-session identity persistence
  */
 (function(w,d){
   'use strict';
   if(w.TM)return;
 
   var TM={
-    v:'1.0.0',
+    v:'1.1.0',
     cid:null,
     lid:null,
     sid:null,
+    uid:null,  // User identity (email) for returning visitors
     url:null,
     q:[],
 
@@ -25,6 +32,7 @@
       if(!this.cid){console.error('TM: data-company required');return;}
 
       this.sid=this._sid();
+      this.uid=this._uid();  // Load stored identity
       this._flush();
       this._auto();
     },
@@ -33,6 +41,27 @@
       var k='_tm_sid',s=localStorage.getItem(k);
       if(!s){s='s_'+Date.now()+'_'+Math.random().toString(36).substr(2,9);localStorage.setItem(k,s);}
       return s;
+    },
+
+    // Get stored user identity for returning visitors
+    _uid:function(){
+      try{
+        var k='_tm_uid',u=localStorage.getItem(k);
+        return u?JSON.parse(u):null;
+      }catch(e){return null;}
+    },
+
+    // Store user identity for future visits
+    _setUid:function(user){
+      try{
+        var k='_tm_uid';
+        localStorage.setItem(k,JSON.stringify({
+          email:user.email,
+          name:user.name||'Unknown',
+          phone:user.phone||null
+        }));
+        this.uid={email:user.email,name:user.name,phone:user.phone};
+      }catch(e){}
     },
 
     _send:function(ep,data){
@@ -58,7 +87,7 @@
     },
 
     page:function(title,url){
-      this._send('/api/events',{
+      var data={
         company_id:this.cid,
         sessionId:this.sid,
         list_id:this.lid,
@@ -67,11 +96,16 @@
           eventData:{address:url||location.href,title:title||d.title},
           timestamp:new Date().toISOString()
         }]
-      });
+      };
+      // Include user identity for returning visitors
+      if(this.uid&&this.uid.email){
+        data.returning_user=this.uid;
+      }
+      this._send('/api/events',data);
     },
 
     track:function(event,props){
-      this._send('/api/events',{
+      var data={
         company_id:this.cid,
         sessionId:this.sid,
         list_id:this.lid,
@@ -80,11 +114,18 @@
           eventData:{address:location.href,properties:props||{}},
           timestamp:new Date().toISOString()
         }]
-      });
+      };
+      // Include user identity for returning visitors
+      if(this.uid&&this.uid.email){
+        data.returning_user=this.uid;
+      }
+      this._send('/api/events',data);
     },
 
     identify:function(user){
       if(!user||!user.email)return console.error('TM: email required');
+      // Store identity for future visits
+      this._setUid(user);
       this._send('/api/profile',{
         company_id:this.cid,
         sessionId:this.sid,
@@ -94,6 +135,21 @@
         phone:user.phone||null,
         source:'form'
       });
+    },
+
+    // Clear stored identity (for logout scenarios)
+    reset:function(){
+      try{
+        localStorage.removeItem('_tm_uid');
+        localStorage.removeItem('_tm_sid');
+        this.uid=null;
+        this.sid=this._sid();  // Generate new session
+      }catch(e){}
+    },
+
+    // Get current user identity (if any)
+    getUser:function(){
+      return this.uid;
     }
   };
 

@@ -197,6 +197,37 @@ exports.sanitizeEventData = (data) => {
     }
   }
 
+  // Returning user validation (for returning visitors)
+  if (data.returning_user && typeof data.returning_user === 'object') {
+    const returningUser = {};
+
+    // Validate and sanitize email
+    if (data.returning_user.email) {
+      const email = exports.sanitizeEmail(data.returning_user.email);
+      if (email) {
+        returningUser.email = email;
+      }
+    }
+
+    // Sanitize name if provided
+    if (data.returning_user.name) {
+      returningUser.name = validator.escape(String(data.returning_user.name).trim());
+    }
+
+    // Sanitize phone if provided
+    if (data.returning_user.phone) {
+      const phone = exports.sanitizePhone(data.returning_user.phone);
+      if (phone) {
+        returningUser.phone = phone;
+      }
+    }
+
+    // Only include if we have at least an email
+    if (returningUser.email) {
+      sanitized.returning_user = returningUser;
+    }
+  }
+
   // Events array validation
   if (data.events && Array.isArray(data.events)) {
     sanitized.events = data.events.map(event => {
