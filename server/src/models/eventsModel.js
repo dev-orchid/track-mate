@@ -43,7 +43,7 @@ exports.getAllEvent = async (company_id) => {
 };
 
 /**
- * Create a new event session with events
+ * Create a new event session with events, or add to existing session
  * @param {Object} eventData - Event data including sessionId, company_id, events array
  * @returns {Object} Result object with status and response
  */
@@ -67,21 +67,49 @@ exports.eventCreation = async (eventData) => {
             }
         }
 
-        // Create event session first
-        const { data: session, error: sessionError } = await db
+        let session;
+
+        // Check if session already exists for this sessionId and company
+        const { data: existingSession, error: findError } = await db
             .from('event_sessions')
-            .insert({
-                profile_id: profileId,
-                company_id: eventData.company_id,
-                session_id: eventData.sessionId,
-                list_id: eventData.list_id || null
-            })
-            .select()
+            .select('*')
+            .eq('session_id', eventData.sessionId)
+            .eq('company_id', eventData.company_id)
+            .limit(1)
             .single();
 
-        if (sessionError) throw sessionError;
+        if (existingSession && !findError) {
+            // Session exists - use it and update profile_id if we now have one
+            session = existingSession;
 
-        // Insert individual events
+            // Update profile_id if we have one now but session didn't
+            if (profileId && !session.profile_id) {
+                await db
+                    .from('event_sessions')
+                    .update({ profile_id: profileId })
+                    .eq('id', session.id);
+                session.profile_id = profileId;
+            }
+            console.log(`[SESSION] Using existing session ${session.id} for ${eventData.sessionId}`);
+        } else {
+            // Create new event session
+            const { data: newSession, error: sessionError } = await db
+                .from('event_sessions')
+                .insert({
+                    profile_id: profileId,
+                    company_id: eventData.company_id,
+                    session_id: eventData.sessionId,
+                    list_id: eventData.list_id || null
+                })
+                .select()
+                .single();
+
+            if (sessionError) throw sessionError;
+            session = newSession;
+            console.log(`[SESSION] Created new session ${session.id} for ${eventData.sessionId}`);
+        }
+
+        // Insert individual events to the session
         const eventsToInsert = (eventData.events || []).map(event => ({
             event_session_id: session.id,
             event_type: event.eventType,
@@ -263,6 +291,7 @@ exports.addEventsToSession = async (sessionId, events) => {
 /**
  * Get anonymous sessions (sessions without a linked profile)
  * These are visitors who viewed pages but haven't filled a form yet
+ * Merges multiple session records with same session_id
  * @param {string} company_id - Company ID
  * @returns {Array} Array of anonymous sessions with events
  */
@@ -280,20 +309,58 @@ exports.getAnonymousSessions = async (company_id) => {
 
         if (error) throw error;
 
-        // Transform to match expected structure
-        return (data || []).map(session => ({
-            _id: session.id,
-            sessionId: session.session_id,
-            company_id: session.company_id,
-            list_id: session.list_id,
-            createdAt: session.created_at,
-            events: (session.events || []).map(event => ({
-                _id: event.id,
-                eventType: event.event_type,
-                eventData: event.event_data,
-                timestamp: event.timestamp
-            }))
+        // Group sessions by session_id to merge duplicates
+        const sessionMap = new Map();
+
+        (data || []).forEach(session => {
+            const sid = session.session_id;
+
+            if (sessionMap.has(sid)) {
+                // Merge events into existing session
+                const existing = sessionMap.get(sid);
+                const newEvents = (session.events || []).map(event => ({
+                    _id: event.id,
+                    eventType: event.event_type,
+                    eventData: event.event_data,
+                    timestamp: event.timestamp
+                }));
+                existing.events = [...existing.events, ...newEvents];
+                // Use earliest created_at
+                if (new Date(session.created_at) < new Date(existing.createdAt)) {
+                    existing.createdAt = session.created_at;
+                }
+            } else {
+                // Create new entry
+                sessionMap.set(sid, {
+                    _id: session.id,
+                    sessionId: session.session_id,
+                    company_id: session.company_id,
+                    list_id: session.list_id,
+                    createdAt: session.created_at,
+                    events: (session.events || []).map(event => ({
+                        _id: event.id,
+                        eventType: event.event_type,
+                        eventData: event.event_data,
+                        timestamp: event.timestamp
+                    }))
+                });
+            }
+        });
+
+        // Convert map to array and sort events by timestamp
+        const sessions = Array.from(sessionMap.values()).map(session => ({
+            ...session,
+            events: session.events.sort((a, b) =>
+                new Date(a.timestamp) - new Date(b.timestamp)
+            )
         }));
+
+        // Sort sessions by most recent event
+        return sessions.sort((a, b) => {
+            const aLatest = a.events.length > 0 ? new Date(a.events[a.events.length - 1].timestamp) : new Date(a.createdAt);
+            const bLatest = b.events.length > 0 ? new Date(b.events[b.events.length - 1].timestamp) : new Date(b.createdAt);
+            return bLatest - aLatest;
+        });
     } catch (err) {
         console.error('Error fetching anonymous sessions:', err);
         return [];
@@ -302,32 +369,35 @@ exports.getAnonymousSessions = async (company_id) => {
 
 /**
  * Get anonymous session stats for a company
+ * Counts unique session_ids, not total session records
  * @param {string} company_id - Company ID
  * @returns {Object} Stats object with counts
  */
 exports.getAnonymousStats = async (company_id) => {
     try {
-        // Get count of anonymous sessions
-        const { count: totalAnonymous, error: countError } = await db
+        // Get all anonymous sessions to count unique session_ids
+        const { data: allSessions, error: sessionsError } = await db
             .from('event_sessions')
-            .select('*', { count: 'exact', head: true })
+            .select('session_id, created_at')
             .eq('company_id', company_id)
             .is('profile_id', null);
 
-        if (countError) throw countError;
+        if (sessionsError) throw sessionsError;
 
-        // Get recent anonymous sessions (last 7 days)
+        // Count unique session_ids
+        const uniqueSessionIds = new Set((allSessions || []).map(s => s.session_id));
+        const totalAnonymous = uniqueSessionIds.size;
+
+        // Get recent unique sessions (last 7 days)
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-        const { count: recentAnonymous, error: recentError } = await db
-            .from('event_sessions')
-            .select('*', { count: 'exact', head: true })
-            .eq('company_id', company_id)
-            .is('profile_id', null)
-            .gte('created_at', sevenDaysAgo.toISOString());
-
-        if (recentError) throw recentError;
+        const recentSessionIds = new Set(
+            (allSessions || [])
+                .filter(s => new Date(s.created_at) >= sevenDaysAgo)
+                .map(s => s.session_id)
+        );
+        const recentAnonymous = recentSessionIds.size;
 
         // Get total page views from anonymous sessions
         const { data: pageViewData, error: pageViewError } = await db
@@ -342,8 +412,8 @@ exports.getAnonymousStats = async (company_id) => {
         const anonymousPageViews = pageViewData?.length || 0;
 
         return {
-            totalAnonymous: totalAnonymous || 0,
-            recentAnonymous: recentAnonymous || 0,
+            totalAnonymous,
+            recentAnonymous,
             anonymousPageViews
         };
     } catch (err) {
