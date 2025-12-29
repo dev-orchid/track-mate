@@ -28,12 +28,13 @@ app.use(addRequestId);
 // Middleware to parse JSON
 app.use(express.json());
 
-// CORS configuration - allow requests from dashboard and tracking snippets
+// CORS configuration
 const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:3001',
     'http://localhost:8080',
     'https://track-mate-pi.vercel.app',
+    'https://track-mate-chi.vercel.app',
     'null' // 'null' allows file:// for testing
 ];
 
@@ -42,20 +43,34 @@ if (process.env.CORS_ORIGIN) {
     allowedOrigins.push(process.env.CORS_ORIGIN);
 }
 
+// Public tracking endpoints that allow any origin (for pixel/snippet use)
+const publicTrackingPaths = ['/api/events', '/api/profile'];
+
 app.use(cors({
     origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps, curl, or Postman)
+        // Allow requests with no origin (curl, mobile apps, etc.)
         if (!origin) return callback(null, true);
 
-        // Check if origin is in allowed list or matches Vercel pattern
-        if (allowedOrigins.indexOf(origin) !== -1 || /\.vercel\.app$/.test(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
+        // Allow any origin for public tracking endpoints
+        callback(null, true);
     },
     credentials: true
 }));
+
+// Override CORS for non-tracking endpoints to restrict origins
+app.use((req, res, next) => {
+    const isPublicTracking = publicTrackingPaths.some(p => req.path === p || req.path.startsWith(p + '/'));
+    const origin = req.headers.origin;
+
+    // For non-tracking endpoints, enforce origin restrictions
+    if (!isPublicTracking && origin) {
+        const isAllowed = allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin);
+        if (!isAllowed) {
+            return res.status(403).json({ success: false, message: 'Not allowed by CORS' });
+        }
+    }
+    next();
+});
 
 // Logging middleware
 app.use(logRequestResponse);
