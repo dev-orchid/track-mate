@@ -141,6 +141,21 @@ exports.sanitizeProfileData = (data) => {
     }
   }
 
+  // List ID validation (should be alphanumeric + hyphen, format: LST-XXXXXX)
+  if (data.list_id) {
+    if (typeof data.list_id === 'string' && /^LST-[A-Z0-9]+$/i.test(data.list_id)) {
+      sanitized.list_id = data.list_id.toUpperCase();
+    }
+  }
+
+  // Source validation (pixel, form, api, webhook)
+  if (data.source) {
+    const validSources = ['pixel', 'form', 'api', 'webhook'];
+    if (validSources.includes(data.source)) {
+      sanitized.source = data.source;
+    }
+  }
+
   return {
     isValid: errors.length === 0,
     sanitized,
