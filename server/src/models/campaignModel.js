@@ -55,7 +55,7 @@ exports.getAllCampaigns = async (company_id, options = {}) => {
             .select(`
                 *,
                 list:lists(*),
-                creator:accounts(id, first_name, last_name, email)
+                creator:accounts!created_by(id, first_name, last_name, email)
             `, { count: 'exact' })
             .eq('company_id', company_id);
 
@@ -104,7 +104,7 @@ exports.getCampaignById = async (campaignId, company_id) => {
             .select(`
                 *,
                 list:lists(*),
-                creator:accounts(id, first_name, last_name, email)
+                creator:accounts!created_by(id, first_name, last_name, email)
             `)
             .eq('id', campaignId)
             .eq('company_id', company_id)
