@@ -113,20 +113,7 @@ const Lists: NextPage = () => {
     const snippet = `<!-- TrackMate Tracking Snippet for List: ${selectedList.name} -->
 <script src="${API_URL}/tm.js"></script>
 <script>
-  // Initialize TrackMate with your company ID and list ID
   TM.init('${companyId}', '${selectedList.list_id}');
-
-  // TrackMate automatically tracks page views
-  // Call TM.identify() when user submits a form:
-
-  // Example:
-  // document.getElementById('your-form').addEventListener('submit', function(e) {
-  //   TM.identify({
-  //     name: document.getElementById('name').value,
-  //     email: document.getElementById('email').value,
-  //     phone: document.getElementById('phone').value
-  //   });
-  // });
 </script>`;
 
     navigator.clipboard.writeText(snippet);
@@ -470,22 +457,7 @@ const Lists: NextPage = () => {
 {`<!-- TrackMate Tracking Snippet for List: ${selectedList.name} -->
 <script src="${API_URL}/tm.js"></script>
 <script>
-  // Initialize TrackMate with your company ID and list ID
   TM.init('${accountDetails?.company_id || 'YOUR_COMPANY_ID'}', '${selectedList.list_id}');
-
-  // TrackMate automatically tracks page views
-  // Call TM.identify() when user submits a form:
-
-  // Example:
-  // document.getElementById('your-form').addEventListener('submit', function(e) {
-  //   TM.identify({
-  //     name: document.getElementById('name').value,
-  //     email: document.getElementById('email').value,
-  //     phone: document.getElementById('phone').value
-  //   });
-  // });
-
-  // Profile will be auto-assigned tags: ${selectedList.tags?.map((t: any) => t.name).join(', ')}
 </script>`}
                 </pre>
               </div>
@@ -503,7 +475,7 @@ const Lists: NextPage = () => {
                     <path d="M12 16V12M12 8H12.01" stroke="#856404" strokeWidth="2" strokeLinecap="round"/>
                   </svg>
                   <div style={{ fontSize: '13px', color: '#856404' }}>
-                    <strong>Ready to use!</strong> Copy this snippet and paste it into your website's HTML. When users submit a form with <code>TM.identify()</code>, they'll automatically be assigned all tags from this list.
+                    <strong>Ready to use!</strong> Paste this in your website. To identify users, call: <code>TM.identify({'{'} name, email, phone {'}'})</code>
                   </div>
                 </div>
               </div>
