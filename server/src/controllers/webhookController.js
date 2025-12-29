@@ -12,7 +12,6 @@ exports.handleWebhookEvent = async (req, res) => {
   try {
     const { identifier, eventType, eventData, timestamp } = req.body;
     const company_id = req.webhook.company_id; // From verifyWebhookKey middleware
-
     // Validation
     if (!identifier || !eventType) {
       logger.logSecurity('webhook_validation_failed', {
