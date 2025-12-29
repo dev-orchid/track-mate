@@ -4,7 +4,6 @@ const profileModel = require('../models/profileModel');
 const eventsModel = require('../models/eventsModel');
 const sanitizer = require('../utils/sanitizer');
 const logger = require('../utils/logger');
-
 /**
  * Handle incoming webhook events from customer servers
  * Binds events to users via email, sessionId, or userId
