@@ -414,6 +414,81 @@ exports.refreshListCount = async (req, res) => {
 };
 
 /**
+ * Debug endpoint to check auto-tagging setup
+ * This helps diagnose why auto-tagging might not be working
+ */
+exports.debugAutoTag = async (req, res) => {
+  try {
+    const { list_id } = req.params; // list_id like "LST-6XDKNB"
+    const company_id = req.user.company_id;
+
+    const { db } = require('../utils/dbConnect');
+    const debug = {};
+
+    // 1. Get list by list_id (6-char ID)
+    const { data: list, error: listError } = await db
+      .from('lists')
+      .select('*')
+      .eq('list_id', list_id.toUpperCase())
+      .eq('company_id', company_id)
+      .single();
+
+    debug.list = list ? { id: list.id, name: list.name, list_id: list.list_id } : null;
+    debug.listError = listError?.message || null;
+
+    if (list) {
+      // 2. Get tags associated with this list from list_tags
+      const { data: listTags, error: listTagsError } = await db
+        .from('list_tags')
+        .select(`
+          tag_id,
+          tag:tags(id, name, profile_count)
+        `)
+        .eq('list_id', list.id);
+
+      debug.listTags = listTags || [];
+      debug.listTagsError = listTagsError?.message || null;
+
+      // 3. Get profiles with this list_id
+      const { data: profiles, error: profilesError } = await db
+        .from('profiles')
+        .select('id, name, email, list_id')
+        .eq('company_id', company_id)
+        .eq('list_id', list_id.toUpperCase())
+        .limit(10);
+
+      debug.profiles = profiles || [];
+      debug.profilesError = profilesError?.message || null;
+
+      // 4. Get profile_tags entries for these profiles
+      if (profiles && profiles.length > 0) {
+        const profileIds = profiles.map(p => p.id);
+        const { data: profileTags, error: profileTagsError } = await db
+          .from('profile_tags')
+          .select('profile_id, tag_id')
+          .in('profile_id', profileIds);
+
+        debug.profileTags = profileTags || [];
+        debug.profileTagsError = profileTagsError?.message || null;
+      }
+    }
+
+    res.json({
+      success: true,
+      company_id,
+      list_id: list_id.toUpperCase(),
+      debug
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+      stack: error.stack
+    });
+  }
+};
+
+/**
  * Sync list - assign list tags to all profiles with this list_id
  * This fixes profiles that have list_id but weren't auto-tagged
  */
