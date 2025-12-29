@@ -1,5 +1,5 @@
 // src/components/Dashboard/EventData_new.tsx
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -66,6 +66,8 @@ interface EventDataProps {
 }
 
 const EventData: React.FC<EventDataProps> = ({ trackingData }) => {
+  const [expandedUser, setExpandedUser] = useState<string | null>(null);
+
   // Calculate real metrics from tracking data
   const metrics = useMemo(() => {
     if (!trackingData || trackingData.length === 0) {
@@ -126,7 +128,7 @@ const EventData: React.FC<EventDataProps> = ({ trackingData }) => {
 
     const avgEventsPerUser = totalUsers > 0 ? (totalEvents / totalUsers).toFixed(1) : 0;
 
-    // Group recent activity by user - show each user once with their latest event and event count
+    // Group recent activity by user - store all events for accordion view
     const userActivityMap = new Map<string, any>();
 
     recentActivity.forEach((activity) => {
@@ -135,26 +137,40 @@ const EventData: React.FC<EventDataProps> = ({ trackingData }) => {
 
       if (!existing) {
         userActivityMap.set(key, {
-          ...activity,
-          eventCount: 1,
-          allEvents: [activity.eventType]
+          user: activity.user,
+          email: activity.email,
+          profileId: activity.profileId,
+          latestTimestamp: activity.timestamp,
+          latestEventType: activity.eventType,
+          events: [{
+            eventType: activity.eventType,
+            timestamp: activity.timestamp,
+            products: activity.products
+          }]
         });
       } else {
-        existing.eventCount += 1;
-        if (!existing.allEvents.includes(activity.eventType)) {
-          existing.allEvents.push(activity.eventType);
-        }
-        // Keep the most recent timestamp
-        if (new Date(activity.timestamp) > new Date(existing.timestamp)) {
-          existing.timestamp = activity.timestamp;
-          existing.eventType = activity.eventType;
+        existing.events.push({
+          eventType: activity.eventType,
+          timestamp: activity.timestamp,
+          products: activity.products
+        });
+        // Keep the most recent timestamp as the main one
+        if (new Date(activity.timestamp) > new Date(existing.latestTimestamp)) {
+          existing.latestTimestamp = activity.timestamp;
+          existing.latestEventType = activity.eventType;
         }
       }
     });
 
-    // Convert to array and sort by latest activity
+    // Convert to array, sort events within each user, and sort users by latest activity
     const uniqueUserActivity = Array.from(userActivityMap.values())
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .map(user => ({
+        ...user,
+        events: user.events.sort((a: any, b: any) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        )
+      }))
+      .sort((a, b) => new Date(b.latestTimestamp).getTime() - new Date(a.latestTimestamp).getTime())
       .slice(0, 10);
 
     return {
@@ -336,41 +352,104 @@ const EventData: React.FC<EventDataProps> = ({ trackingData }) => {
             </div>
             <div className="activity-list">
               {metrics.recentActivity.length > 0 ? (
-                metrics.recentActivity.map((activity, index) => (
-                  <div key={index} className="activity-item">
-                    <div className="activity-dot"></div>
-                    <div className="activity-content">
-                      <div className="activity-main">
-                        <span className="activity-user">{activity.user}</span>
-                        <span className="activity-event">{activity.eventType}</span>
-                        {activity.eventCount > 1 && (
-                          <span className="activity-count" style={{
-                            marginLeft: '8px',
-                            fontSize: '11px',
-                            padding: '2px 8px',
-                            backgroundColor: '#f0f0f0',
-                            borderRadius: '12px',
-                            color: '#666'
-                          }}>
-                            +{activity.eventCount - 1} more
-                          </span>
-                        )}
+                metrics.recentActivity.map((activity, index) => {
+                  const uniqueKey = activity.profileId || activity.email || activity.user;
+                  const isExpanded = expandedUser === uniqueKey;
+
+                  return (
+                    <div key={index} style={{ marginBottom: '8px' }}>
+                      {/* Clickable Header */}
+                      <div
+                        className="activity-item"
+                        onClick={() => setExpandedUser(isExpanded ? null : uniqueKey)}
+                        style={{
+                          cursor: 'pointer',
+                          borderRadius: isExpanded ? '8px 8px 0 0' : '8px',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        <div className="activity-dot"></div>
+                        <div className="activity-content" style={{ flex: 1 }}>
+                          <div className="activity-main">
+                            <span className="activity-user">{activity.user}</span>
+                            <span className="activity-event">{activity.latestEventType}</span>
+                            {activity.events.length > 1 && (
+                              <span style={{
+                                marginLeft: '8px',
+                                fontSize: '11px',
+                                padding: '2px 8px',
+                                backgroundColor: isExpanded ? '#FB4C00' : '#f0f0f0',
+                                color: isExpanded ? 'white' : '#666',
+                                borderRadius: '12px',
+                                transition: 'all 0.2s ease'
+                              }}>
+                                {activity.events.length} events
+                              </span>
+                            )}
+                          </div>
+                          <div className="activity-time">
+                            {new Date(activity.latestTimestamp).toLocaleString()}
+                          </div>
+                        </div>
+                        <div style={{
+                          marginLeft: '12px',
+                          transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                          transition: 'transform 0.2s ease'
+                        }}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 9L12 15L18 9" stroke="#666" strokeWidth="2" strokeLinecap="round"/>
+                          </svg>
+                        </div>
                       </div>
-                      <div className="activity-time">
-                        {new Date(activity.timestamp).toLocaleString()}
-                      </div>
-                      {activity.products.length > 0 && (
-                        <div className="activity-products">
-                          {activity.products.map((product: ProductInfo, idx: number) => (
-                            <span key={idx} className="product-tag">
-                              {product.productName} - ${product.price}
-                            </span>
+
+                      {/* Expandable Events List */}
+                      {isExpanded && (
+                        <div style={{
+                          backgroundColor: '#f8f9fc',
+                          borderRadius: '0 0 8px 8px',
+                          padding: '12px 16px 12px 48px',
+                          borderTop: '1px solid #eee'
+                        }}>
+                          {activity.events.map((event: any, eventIdx: number) => (
+                            <div
+                              key={eventIdx}
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                padding: '8px 0',
+                                borderBottom: eventIdx < activity.events.length - 1 ? '1px solid #e9ecef' : 'none'
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{
+                                  width: '6px',
+                                  height: '6px',
+                                  borderRadius: '50%',
+                                  backgroundColor: '#FB4C00',
+                                  opacity: 0.5
+                                }}></span>
+                                <span style={{
+                                  fontSize: '13px',
+                                  padding: '2px 10px',
+                                  backgroundColor: 'white',
+                                  borderRadius: '4px',
+                                  color: '#333',
+                                  border: '1px solid #e0e0e0'
+                                }}>
+                                  {event.eventType}
+                                </span>
+                              </div>
+                              <span style={{ fontSize: '12px', color: '#888' }}>
+                                {new Date(event.timestamp).toLocaleTimeString()}
+                              </span>
+                            </div>
                           ))}
                         </div>
                       )}
                     </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="empty-state">
                   <p>No recent activity available</p>
