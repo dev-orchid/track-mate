@@ -111,20 +111,51 @@ const EventData: React.FC<EventDataProps> = ({ trackingData }) => {
           const date = new Date(event.timestamp).toLocaleDateString();
           dailyEvents[date] = (dailyEvents[date] || 0) + 1;
 
-          // Recent activity (last 10)
-          if (recentActivity.length < 10) {
-            recentActivity.push({
-              user: profile.name || 'Anonymous User',
-              eventType: event.eventType,
-              timestamp: event.timestamp,
-              products: event.eventData?.productInfos || [],
-            });
-          }
+          // Collect all events for recent activity processing later
+          recentActivity.push({
+            user: profile.name || 'Anonymous User',
+            email: profile.email,
+            profileId: profile._id,
+            eventType: event.eventType,
+            timestamp: event.timestamp,
+            products: event.eventData?.productInfos || [],
+          });
         });
       });
     });
 
     const avgEventsPerUser = totalUsers > 0 ? (totalEvents / totalUsers).toFixed(1) : 0;
+
+    // Group recent activity by user - show each user once with their latest event and event count
+    const userActivityMap = new Map<string, any>();
+
+    recentActivity.forEach((activity) => {
+      const key = activity.profileId || activity.email || activity.user;
+      const existing = userActivityMap.get(key);
+
+      if (!existing) {
+        userActivityMap.set(key, {
+          ...activity,
+          eventCount: 1,
+          allEvents: [activity.eventType]
+        });
+      } else {
+        existing.eventCount += 1;
+        if (!existing.allEvents.includes(activity.eventType)) {
+          existing.allEvents.push(activity.eventType);
+        }
+        // Keep the most recent timestamp
+        if (new Date(activity.timestamp) > new Date(existing.timestamp)) {
+          existing.timestamp = activity.timestamp;
+          existing.eventType = activity.eventType;
+        }
+      }
+    });
+
+    // Convert to array and sort by latest activity
+    const uniqueUserActivity = Array.from(userActivityMap.values())
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 10);
 
     return {
       totalUsers,
@@ -132,9 +163,7 @@ const EventData: React.FC<EventDataProps> = ({ trackingData }) => {
       totalRevenue,
       avgEventsPerUser,
       eventTypes,
-      recentActivity: recentActivity.sort((a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-      ),
+      recentActivity: uniqueUserActivity,
       dailyEvents,
     };
   }, [trackingData]);
@@ -314,6 +343,18 @@ const EventData: React.FC<EventDataProps> = ({ trackingData }) => {
                       <div className="activity-main">
                         <span className="activity-user">{activity.user}</span>
                         <span className="activity-event">{activity.eventType}</span>
+                        {activity.eventCount > 1 && (
+                          <span className="activity-count" style={{
+                            marginLeft: '8px',
+                            fontSize: '11px',
+                            padding: '2px 8px',
+                            backgroundColor: '#f0f0f0',
+                            borderRadius: '12px',
+                            color: '#666'
+                          }}>
+                            +{activity.eventCount - 1} more
+                          </span>
+                        )}
                       </div>
                       <div className="activity-time">
                         {new Date(activity.timestamp).toLocaleString()}
