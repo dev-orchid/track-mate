@@ -5,7 +5,7 @@ import Footer from '../components/Layout/Footer';
 import type { NextPage } from 'next';
 import { useLists, createList, updateList, deleteList, addTagsToList, removeTagsFromList, refreshListCount } from '../hooks/useLists';
 import { useTags } from '../hooks/useTags';
-import { useAccountDetails } from '../hooks/useAccountDetails';
+import useAccountDetails from '../hooks/useAccountDetails';
 
 // API URL for tracking snippet
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://track-mate-server.vercel.app';
@@ -13,7 +13,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://track-mate-server.ve
 const Lists: NextPage = () => {
   const { lists, loading, error, refetch } = useLists(100);
   const { tags } = useTags(100);
-  const { account } = useAccountDetails();
+  const { accountDetails } = useAccountDetails();
   const [showModal, setShowModal] = useState(false);
   const [showSnippetModal, setShowSnippetModal] = useState(false);
   const [selectedList, setSelectedList] = useState<any>(null);
@@ -109,7 +109,7 @@ const Lists: NextPage = () => {
   const copySnippet = () => {
     if (!selectedList) return;
 
-    const companyId = account?.company_id || 'YOUR_COMPANY_ID';
+    const companyId = accountDetails?.company_id || 'YOUR_COMPANY_ID';
     const snippet = `<!-- TrackMate Tracking Snippet for List: ${selectedList.name} -->
 <script src="${API_URL}/tm.js"></script>
 <script>
@@ -471,7 +471,7 @@ const Lists: NextPage = () => {
 <script src="${API_URL}/tm.js"></script>
 <script>
   // Initialize TrackMate with your company ID and list ID
-  TM.init('${account?.company_id || 'YOUR_COMPANY_ID'}', '${selectedList.list_id}');
+  TM.init('${accountDetails?.company_id || 'YOUR_COMPANY_ID'}', '${selectedList.list_id}');
 
   // TrackMate automatically tracks page views
   // Call TM.identify() when user submits a form:
