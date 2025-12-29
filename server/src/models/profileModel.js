@@ -109,6 +109,7 @@ exports.getProfileDataWithEvents = async (id, company_id) => {
         }
 
         // Transform to match existing API response structure
+        // Return events grouped by session (client expects this structure)
         return {
             _id: profile.id,
             name: profile.name,
@@ -119,15 +120,16 @@ exports.getProfileDataWithEvents = async (id, company_id) => {
             createdAt: profile.created_at,
             source: profile.source,
             list_id: profile.list_id,
-            events: (profile.event_sessions || []).flatMap(session =>
-                (session.events || []).map(event => ({
+            events: (profile.event_sessions || []).map(session => ({
+                _id: session.id,
+                sessionId: session.session_id,
+                events: (session.events || []).map(event => ({
                     _id: event.id,
                     eventType: event.event_type,
                     eventData: event.event_data,
-                    timestamp: event.timestamp,
-                    sessionId: session.session_id
+                    timestamp: event.timestamp
                 }))
-            )
+            }))
         };
     } catch (err) {
         console.error('Error fetching profile with events by id:', err);
