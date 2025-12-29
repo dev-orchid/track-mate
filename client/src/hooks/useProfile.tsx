@@ -2,25 +2,29 @@ import { useCallback, useEffect, useState } from "react";
 
 import { getProfileData } from "./requests";
 
-function getProfiles(){
-
+function useProfiles() {
     const [profiles, setProfiledata] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const getProfiles = useCallback(async ()=>{
-
-        const profileData = await getProfileData();
-
-        setProfiledata(profileData.data.flat());
-
+    const fetchProfiles = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const profileData = await getProfileData();
+            setProfiledata(profileData.data.flat());
+        } catch (err: any) {
+            setError(err.message || 'Failed to load profiles');
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
-    useEffect(()=>{
+    useEffect(() => {
+        fetchProfiles();
+    }, [fetchProfiles]);
 
-        getProfiles();
-
-    }, [getProfiles] );
-
-    return profiles;
+    return { profiles, loading, error, refetch: fetchProfiles };
 }
 
-export default getProfiles;
+export default useProfiles;
