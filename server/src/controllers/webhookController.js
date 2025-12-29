@@ -8,6 +8,7 @@ const logger = require('../utils/logger');
  * Handle incoming webhook events from customer servers
  * Binds events to users via email, sessionId, or userId
  */
+
 exports.handleWebhookEvent = async (req, res) => {
   try {
     const { identifier, eventType, eventData, timestamp } = req.body;
