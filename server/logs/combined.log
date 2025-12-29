@@ -3368,3 +3368,5 @@
 {"company_id":"TM-PZ7ZK","count":0,"level":"info","message":"Database Operation","operation":"get_new_profiles","request_id":"66d3bd84-36cb-445a-86b3-dd5888017df7","service":"trackmate-api","since":"2025-10-18T15:35:23.560Z","timestamp":"2025-12-29 10:47:40"}
 {"duration":"1617ms","level":"info","message":"API Response","method":"GET","requestId":"66d3bd84-36cb-445a-86b3-dd5888017df7","service":"trackmate-api","statusCode":304,"timestamp":"2025-12-29 10:47:40","url":"/api/notifications/new-profiles?since=2025-10-18T15:35:23.560Z"}
 {"level":"info","message":"::1 - - [29/Dec/2025:05:17:40 +0000] \"GET /api/notifications/new-profiles?since=2025-10-18T15:35:23.560Z HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36\"","service":"trackmate-api","timestamp":"2025-12-29 10:47:40"}
+{"level":"info","message":"Database connected successfully","service":"trackmate-api","timestamp":"2025-12-29 11:08:10"}
+{"level":"info","message":"Backend server running on port 8000","port":"8000","service":"trackmate-api","timestamp":"2025-12-29 11:08:10"}
