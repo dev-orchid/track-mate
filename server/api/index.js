@@ -31,6 +31,7 @@ const allowedOrigins = [
   'http://localhost:8080',
   'https://track-mate-pi.vercel.app',
   'https://track-mate-chi.vercel.app',
+  'https://track.orchidsw.com',
   'null'
 ];
 
