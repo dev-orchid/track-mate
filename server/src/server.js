@@ -30,6 +30,7 @@ app.use(express.json());
 
 // CORS configuration
 const allowedOrigins = [
+    'http://localhost:3000',
     'https://track.orchidsw.com',
     'null' // 'null' allows file:// for testing
 ];
