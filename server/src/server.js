@@ -30,15 +30,9 @@ app.use(express.json());
 
 // CORS configuration
 const allowedOrigins = [
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'http://localhost:8080',
-    'https://track-mate-pi.vercel.app',
-    'https://track-mate-chi.vercel.app',
     'https://track.orchidsw.com',
     'null' // 'null' allows file:// for testing
 ];
-
 // If CORS_ORIGIN env var is set, add it to allowed origins
 if (process.env.CORS_ORIGIN) {
     allowedOrigins.push(process.env.CORS_ORIGIN);
