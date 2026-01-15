@@ -57,9 +57,13 @@ app.use((req, res, next) => {
     const isPublicTracking = publicTrackingPaths.some(p => req.path === p || req.path.startsWith(p + '/'));
     const origin = req.headers.origin;
 
+    // Debug logging for CORS issues
+    console.log('CORS Check:', { path: req.path, origin, allowedOrigins, isPublicTracking });
+
     // For non-tracking endpoints, enforce origin restrictions
     if (!isPublicTracking && origin) {
         const isAllowed = allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin);
+        console.log('CORS Result:', { origin, isAllowed });
         if (!isAllowed) {
             return res.status(403).json({ success: false, message: 'Not allowed by CORS' });
         }
